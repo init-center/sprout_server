@@ -15,6 +15,7 @@ var db *sqlx.DB
 
 func Init(cfg *settings.MySQLConfig) (err error) {
 	// get the db serve name from config
+	fmt.Println(cfg)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True",
 		cfg.User,
 		cfg.Password,

@@ -2,6 +2,8 @@ app:
   name: "sprout_server"
   mode: "dev"
   port: 8081
+  default_avatar: "./static/images/avatar.jpg"
+  salt_prefix: "abcdefghijklmnnmlkjihg"
   version: "v0.1.1"
 
 log:
@@ -16,7 +18,7 @@ mysql:
   port: 3306
   user: "root"
   password: "root1234"
-  abname: "sql_demo"
+  dbname: "sql_demo"
 
 redis:
   host: "127.0.0.1"
@@ -24,3 +26,9 @@ redis:
   password: "redis1234"
   db: 0
   pool_size: 100
+smtp:
+  host: "smtp.xxx.com"
+  port: "25"
+  password: "abcdefg"
+  user: "abc@xxx.com"
+  userName: "admin <abc@xxx.com>"

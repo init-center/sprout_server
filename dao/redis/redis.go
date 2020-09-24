@@ -10,6 +10,9 @@ import (
 // declare a global rdb variable
 var rdb *redis.Client
 
+// define a constant to save the redis.Nil
+var Nil = redis.Nil
+
 // Init connection
 func Init(cfg *settings.RedisConfig) (err error) {
 	rdb = redis.NewClient(&redis.Options{

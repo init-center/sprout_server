@@ -3,15 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
 	"sprout_server/dao/mysql"
 	"sprout_server/dao/redis"
 	"sprout_server/logger"
 	"sprout_server/routes"
 	"sprout_server/settings"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
 	"syscall"
 	"time"
 
@@ -53,7 +53,11 @@ func main() {
 	defer redis.Close()
 
 	// 5. setup routes
-	r := routes.Setup()
+	r, err := routes.Setup()
+	if err != nil {
+		fmt.Printf("setup router failed, error: %v\n", err)
+		return
+	}
 
 	// 6. start server
 	srv := &http.Server{
