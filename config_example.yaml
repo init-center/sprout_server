@@ -2,8 +2,6 @@ app:
   name: "sprout_server"
   mode: "dev"
   port: 8081
-  default_avatar: "./static/images/avatar.jpg"
-  salt_prefix: "abcdefghijklmnnmlkjihg"
   version: "v0.1.1"
 
 log:
@@ -26,9 +24,15 @@ redis:
   password: "redis1234"
   db: 0
   pool_size: 100
+
 smtp:
   host: "smtp.xxx.com"
   port: "25"
   password: "abcdefg"
   user: "abc@xxx.com"
   userName: "admin <abc@xxx.com>"
+
+sundries:
+  default_avatar: "./static/images/avatar.jpg"
+  salt_prefix: "abcdefghijklmnopqrstuvwxyz"
+  jwt_secret_prefix: "lalalabalabala"

@@ -25,6 +25,12 @@ func Setup() (*gin.Engine, error) {
 
 	}
 
+	s := r.Group("/session")
+	{
+		sessionController := &controller.SessionController{}
+		s.POST("", sessionController.SignIn)
+	}
+
 	c := r.Group("/vcode")
 	{
 		vCodeController := &controller.VCodeController{}

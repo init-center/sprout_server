@@ -15,7 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -32,7 +31,7 @@ func main() {
 		return
 	}
 	// Refresh all buffered logs synchronously
-	defer zap.L().Sync()
+	defer func() { _ = zap.L().Sync() }()
 
 	// 3. init mysql
 	if err := mysql.Init(settings.Conf.MySQLConfig); err != nil {
@@ -61,7 +60,7 @@ func main() {
 
 	// 6. start server
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", viper.GetInt("app.port")),
+		Addr:    fmt.Sprintf(":%d", settings.Conf.Port),
 		Handler: r,
 	}
 

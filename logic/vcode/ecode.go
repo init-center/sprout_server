@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"math/rand"
 	"net/smtp"
+	"sprout_server/common/constant"
 	"sprout_server/common/response/code"
 	"sprout_server/dao/redis"
 	"sprout_server/models"
@@ -17,8 +18,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const maxEcodeCount = 5
-
 func SendCodeToEmail(p *models.ParamsGetECode) int {
 	// 1.Check whether the eCode has expired
 	_, err := redis.GetECode(p.Uid)
@@ -28,7 +27,7 @@ func SendCodeToEmail(p *models.ParamsGetECode) int {
 		if err != nil && err != redis.Nil {
 			zap.L().Error("get ecode count failed", zap.Error(err))
 			return code.CodeServerBusy
-		} else if count < maxEcodeCount {
+		} else if count < constant.MaxEcodeCount {
 			// gen ecode
 			eCode := genECode()
 			// send code to email
@@ -37,7 +36,7 @@ func SendCodeToEmail(p *models.ParamsGetECode) int {
 			}
 			// send success
 			// store the ecode to redis
-			_, err := redis.SetECode(p.Uid, eCode, 5*time.Minute)
+			_, err := redis.SetECode(p.Uid, eCode, constant.ECodeExpireTime*time.Minute)
 			if err != nil {
 				zap.L().Error("store the ecode to rdb failed", zap.Error(err))
 				return code.CodeServerBusy

@@ -12,16 +12,15 @@ import (
 var Conf = new(AppConfig)
 
 type AppConfig struct {
-	Name          string `mapstructure:"name"`
-	Mode          string `mapstructure:"mode"`
-	Version       string `mapstructure:"version"`
-	DefaultAvatar string `mapstructure:"default_avatar"`
-	SaltPrefix    string `mapstructure:"salt_prefix"`
-	Port          int    `mapstructure:"port"`
-	*LogConfig    `mapstructure:"log"`
-	*MySQLConfig  `mapstructure:"mysql"`
-	*RedisConfig  `mapstructure:"redis"`
-	*SmtpConfig   `mapstructure:"smtp"`
+	Name            string `mapstructure:"name"`
+	Mode            string `mapstructure:"mode"`
+	Version         string `mapstructure:"version"`
+	Port            int    `mapstructure:"port"`
+	*LogConfig      `mapstructure:"log"`
+	*MySQLConfig    `mapstructure:"mysql"`
+	*RedisConfig    `mapstructure:"redis"`
+	*SmtpConfig     `mapstructure:"smtp"`
+	*SundriesConfig `mapstructure:"sundries"`
 }
 
 type LogConfig struct {
@@ -56,6 +55,12 @@ type SmtpConfig struct {
 	Port     string `mapstructure:"port"`
 	User     string `mapstructure:"user"`
 	UserName string `mapstructure:"userName"`
+}
+
+type SundriesConfig struct {
+	DefaultAvatar   string `mapstructure:"default_avatar"`
+	SaltPrefix      string `mapstructure:"salt_prefix"`
+	JwtSecretPrefix string `mapstructure:"jwt_secret_prefix"`
 }
 
 // init settings

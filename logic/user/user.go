@@ -6,6 +6,7 @@ import (
 	"sprout_server/dao/redis"
 	"sprout_server/models"
 	"sprout_server/settings"
+	"strings"
 
 	"go.uber.org/zap"
 )
@@ -52,7 +53,7 @@ func Create(p *models.ParamsSignUp) int {
 	}
 
 	// 5. check the ecode is equal
-	isECodeEqual := eCode == p.ECode
+	isECodeEqual := strings.EqualFold(eCode, p.ECode)
 	if !isECodeEqual {
 		return code.CodeIncorrectECode
 	}
@@ -63,7 +64,7 @@ func Create(p *models.ParamsSignUp) int {
 		PassWord: p.Password,
 		Name:     p.Name,
 		Email:    p.Email,
-		Avatar:   settings.Conf.DefaultAvatar,
+		Avatar:   settings.Conf.SundriesConfig.DefaultAvatar,
 	}
 	if err := mysql.InsertUser(u); err != nil {
 		zap.L().Error("insert user to db failed", zap.Error(err))

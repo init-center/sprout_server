@@ -3,7 +3,6 @@ package mysql
 import (
 	"sprout_server/common/pwd"
 	"sprout_server/models"
-	"sprout_server/settings"
 )
 
 func CheckUidExist(uid string) (bool, error) {
@@ -35,11 +34,23 @@ func CheckEmailExist(email string) (bool, error) {
 
 func InsertUser(user *models.User) (err error) {
 	// encrypt the password
-	password, err := pwd.Encrypt(user.PassWord, settings.Conf.SaltPrefix+user.Uid)
+	password, err := pwd.Encrypt(user.PassWord, user.Uid)
 	if err != nil {
 		return
 	}
 	sqlStr := `INSERT INTO t_user(uid, name, password, email, avatar) VALUES(?, ?, ?, ?, ?)`
 	_, err = db.Exec(sqlStr, user.Uid, user.Name, password, user.Email, user.Avatar)
 	return
+}
+
+func Login(p *models.ParamsSignIn) (models.User, error) {
+	var u models.User
+	sqlStr := `SELECT uid, name, password FROM t_user WHERE (uid=? OR email=?) AND password=?`
+	password, _ := pwd.Encrypt(p.Password, p.Uid)
+	if err := db.Get(&u, sqlStr, p.Uid, p.Uid, password); err != nil {
+		return u, err
+	}
+
+	return u, nil
+
 }

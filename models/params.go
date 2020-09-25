@@ -14,3 +14,8 @@ type ParamsGetECode struct {
 	Email string `json:"email" binding:"required,email"`
 	Type  string `json:"type" binding:"required"`
 }
+
+type ParamsSignIn struct {
+	Uid      string `json:"uid" binding:"required"`
+	Password string `json:"password" binding:"required,min=6,max=16,checkPwd"`
+}

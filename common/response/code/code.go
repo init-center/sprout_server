@@ -26,7 +26,7 @@ var CodeMessageMap = map[int]string{
 	CodeUserNameExist:    "UserName already exist",
 	CodeEmailExist:       "Email already exist",
 	CodeUserNotExist:     "User not exist",
-	CodeInvalidPassword:  "Incorrect username or password",
+	CodeInvalidPassword:  "Incorrect user id or password",
 	CodeServerBusy:       "Server busy",
 	CodeFrequentRequests: "Frequent requests",
 

@@ -2,6 +2,7 @@ package redis
 
 import (
 	"sprout_server/common/mytime"
+	"strings"
 	"time"
 )
 
@@ -31,5 +32,5 @@ func IncrECodeCount(key string) (count int64, err error) {
 }
 
 func joinKey(prefix string, suffix string) string {
-	return prefix + ":" + suffix
+	return strings.ToLower(prefix + ":" + suffix)
 }
