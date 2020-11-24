@@ -3,7 +3,6 @@ package session
 import (
 	"database/sql"
 	"sprout_server/common/jwt"
-	"sprout_server/common/pwd"
 	"sprout_server/common/response/code"
 	"sprout_server/dao/mysql"
 	"sprout_server/models"
@@ -21,10 +20,6 @@ func Create(p *models.ParamsSignIn) (string, int) {
 		zap.L().Error("login failed", zap.Error(err))
 		return "", code.CodeServerBusy
 	}
-	password, _ := pwd.Encrypt(p.Password, p.Uid)
-	if password != u.PassWord {
-		return "", code.CodeInvalidPassword
-	}
 
 	// verify success, gen token
 	token, err := jwt.GenToken(u.Uid)
@@ -33,6 +28,6 @@ func Create(p *models.ParamsSignIn) (string, int) {
 		return "", code.CodeServerBusy
 	}
 
-	return token, code.CodeOK
+	return token, code.CodeCreated
 
 }

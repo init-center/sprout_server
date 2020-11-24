@@ -32,9 +32,18 @@ func CheckEmailExist(email string) (bool, error) {
 	return count > 0, nil
 }
 
+func GetUserGroup(uid string) (int, error) {
+	sqlStr := `SELECT` + " `group`" + ` FROM t_user WHERE uid = ?`
+	var group int
+	if err := db.Get(&group, sqlStr, uid); err != nil {
+		return 0, err
+	}
+	return group, nil
+}
+
 func InsertUser(user *models.User) (err error) {
 	// encrypt the password
-	password, err := pwd.Encrypt(user.PassWord, user.Uid)
+	password, err := pwd.Encrypt(user.PassWord)
 	if err != nil {
 		return
 	}
@@ -46,7 +55,7 @@ func InsertUser(user *models.User) (err error) {
 func Login(p *models.ParamsSignIn) (models.User, error) {
 	var u models.User
 	sqlStr := `SELECT uid, name, password FROM t_user WHERE (uid=? OR email=?) AND password=?`
-	password, _ := pwd.Encrypt(p.Password, p.Uid)
+	password, _ := pwd.Encrypt(p.Password)
 	if err := db.Get(&u, sqlStr, p.Uid, p.Uid, password); err != nil {
 		return u, err
 	}

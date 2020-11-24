@@ -25,15 +25,15 @@ func GenToken(uid string) (string, error) {
 			ExpiresAt: time.Now().Add(constant.TokenExpireDuration).Unix(),
 		},
 	}
-	secret := genSecret(uid)
+	secret := genSecret()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, mc)
 	return token.SignedString(secret)
 }
 
-func ParseToken(tokenString string, uid string) (*MyClaims, error) {
+func ParseToken(tokenString string) (*MyClaims, error) {
 	var mc = new(MyClaims)
 	token, err := jwt.ParseWithClaims(tokenString, mc, func(token *jwt.Token) (i interface{}, err error) {
-		return genSecret(uid), nil
+		return genSecret(), nil
 	})
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func ParseToken(tokenString string, uid string) (*MyClaims, error) {
 	return nil, errors.New("invalid token")
 }
 
-func genSecret(uid string) []byte {
+func genSecret() []byte {
 	//secret must be a []byte
-	return []byte(strings.ToLower(settings.Conf.SundriesConfig.JwtSecretPrefix + uid))
+	return []byte(strings.ToLower(settings.Conf.SundriesConfig.JwtSecret))
 }

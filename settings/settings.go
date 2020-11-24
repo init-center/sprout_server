@@ -16,6 +16,8 @@ type AppConfig struct {
 	Mode            string `mapstructure:"mode"`
 	Version         string `mapstructure:"version"`
 	Port            int    `mapstructure:"port"`
+	StartTime       string `mapstructure:"start_time"`
+	MachineID       int64  `mapstructure:"machine_id"`
 	*LogConfig      `mapstructure:"log"`
 	*MySQLConfig    `mapstructure:"mysql"`
 	*RedisConfig    `mapstructure:"redis"`
@@ -58,9 +60,9 @@ type SmtpConfig struct {
 }
 
 type SundriesConfig struct {
-	DefaultAvatar   string `mapstructure:"default_avatar"`
-	SaltPrefix      string `mapstructure:"salt_prefix"`
-	JwtSecretPrefix string `mapstructure:"jwt_secret_prefix"`
+	DefaultAvatar string `mapstructure:"default_avatar"`
+	Salt          string `mapstructure:"salt"`
+	JwtSecret     string `mapstructure:"jwt_secret"`
 }
 
 // init settings

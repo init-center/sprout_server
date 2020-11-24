@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sprout_server/common/snowflake"
 	"sprout_server/dao/mysql"
 	"sprout_server/dao/redis"
 	"sprout_server/logger"
@@ -50,6 +51,12 @@ func main() {
 
 	// close redis
 	defer redis.Close()
+
+	// init snowflake
+	if err := snowflake.Init(settings.Conf.StartTime, settings.Conf.MachineID); err != nil {
+		fmt.Printf("init snowflake failed, err:%v\n", err)
+		return
+	}
 
 	// 5. setup routes
 	r, err := routes.Setup()

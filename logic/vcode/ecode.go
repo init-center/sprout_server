@@ -8,6 +8,7 @@ import (
 	"net/smtp"
 	"sprout_server/common/constant"
 	"sprout_server/common/response/code"
+	"sprout_server/dao/mysql"
 	"sprout_server/dao/redis"
 	"sprout_server/models"
 	"sprout_server/settings"
@@ -19,11 +20,23 @@ import (
 )
 
 func SendCodeToEmail(p *models.ParamsGetECode) int {
-	// 1.Check whether the eCode has expired
-	_, err := redis.GetECode(p.Uid)
+	// If it is sign up,Check that the mail is available
+	if p.Type == constant.EcodeSignUpType {
+		emailExist, err := mysql.CheckEmailExist(p.Email)
+		if err != nil {
+			zap.L().Error("check email exist failed", zap.Error(err))
+			return code.CodeServerBusy
+		}
+
+		if emailExist {
+			return code.CodeEmailExist
+		}
+	}
+	// Check whether the eCode has expired
+	_, err := redis.GetECode(p.Email)
 	if err == redis.Nil {
 		//Nil value, can send mail
-		count, err := redis.GetECodeCount(p.Uid)
+		count, err := redis.GetECodeCount(p.Email)
 		if err != nil && err != redis.Nil {
 			zap.L().Error("get ecode count failed", zap.Error(err))
 			return code.CodeServerBusy
@@ -36,13 +49,13 @@ func SendCodeToEmail(p *models.ParamsGetECode) int {
 			}
 			// send success
 			// store the ecode to redis
-			_, err := redis.SetECode(p.Uid, eCode, constant.ECodeExpireTime*time.Minute)
+			_, err := redis.SetECode(p.Email, eCode, constant.ECodeExpireTime*time.Minute)
 			if err != nil {
 				zap.L().Error("store the ecode to rdb failed", zap.Error(err))
 				return code.CodeServerBusy
 			}
 			// let the send count add 1 (max 5 times every day)
-			_, err = redis.IncrECodeCount(p.Uid)
+			_, err = redis.IncrECodeCount(p.Email)
 			if err != nil {
 				zap.L().Error("incr the ecode failed", zap.Error(err))
 			}
@@ -68,7 +81,7 @@ func send(p *models.ParamsGetECode, eCode string) error {
 	}
 	data := &models.ECodeData{
 		Email: p.Email,
-		Type:  p.Type,
+		Type:  constant.EcodeTypeNameMap[p.Type],
 		ECode: eCode,
 		Time:  time.Now().Format("2006-01-02 15:04:05"),
 	}

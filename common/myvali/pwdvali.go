@@ -8,7 +8,7 @@ import (
 
 func checkPwd(fl validator.FieldLevel) bool {
 	pwd := fl.Field().String()
-	var hasNumber, hasUpperCase, hasLowercase, hasSpecial bool
+	var hasNumber, hasUpperCase, hasLowercase bool
 	for _, c := range pwd {
 		switch {
 		case unicode.IsNumber(c):
@@ -17,11 +17,7 @@ func checkPwd(fl validator.FieldLevel) bool {
 			hasUpperCase = true
 		case unicode.IsLower(c):
 			hasLowercase = true
-		case unicode.IsPunct(c) || unicode.IsSymbol(c):
-			hasSpecial = true
-		default:
-			return false
 		}
 	}
-	return hasNumber && hasUpperCase && hasLowercase && hasSpecial
+	return hasNumber && hasUpperCase && hasLowercase
 }

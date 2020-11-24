@@ -1,8 +1,9 @@
-app:
-  name: "sprout_server"
-  mode: "dev"
-  port: 8081
-  version: "v0.1.1"
+name: "sprout_server"
+mode: "dev"
+port: 8081
+start_time: "2020-10-31"
+machine_id: 1
+version: "v0.1.1"
 
 log:
   level: "debug"
@@ -34,5 +35,5 @@ smtp:
 
 sundries:
   default_avatar: "./static/images/avatar.jpg"
-  salt_prefix: "abcdefghijklmnopqrstuvwxyz"
-  jwt_secret_prefix: "lalalabalabala"
+  salt: "abcdefghijklmnopqrstuvwxyz"
+  jwt_secret: "lalalabalabala"

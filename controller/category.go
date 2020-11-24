@@ -3,17 +3,17 @@ package controller
 import (
 	"sprout_server/common/response"
 	"sprout_server/common/response/code"
-	"sprout_server/logic/session"
+	"sprout_server/logic/category"
 	"sprout_server/models"
 
 	"github.com/gin-gonic/gin"
 )
 
-type SessionController struct{}
+type CategoryController struct{}
 
-func (s *SessionController) SignIn(c *gin.Context) {
+func (cc *CategoryController) Create(c *gin.Context) {
 	// 1. verify params
-	var p models.ParamsSignIn
+	var p models.ParamsAddCategory
 	if err := c.ShouldBindJSON(&p); err != nil {
 		// params error
 		// we use the shouldBindJSON and use the binding tag on model
@@ -22,15 +22,21 @@ func (s *SessionController) SignIn(c *gin.Context) {
 		return
 	}
 	// 2. logic handle
-	token, statusCode := session.Create(&p)
+	statusCode := category.Create(&p)
 
 	// 3. response result
-	if statusCode != code.CodeCreated {
+	response.Send(c, statusCode)
+	return
+
+}
+
+func (cc *CategoryController) GetAll(c *gin.Context) {
+	categories, statusCode := category.GetAll()
+
+	if statusCode != code.CodeOK {
 		response.Send(c, statusCode)
 		return
 	}
-	response.SendWithData(c, statusCode, gin.H{
-		"token": token,
-	})
 
+	response.SendWithData(c, statusCode, categories)
 }

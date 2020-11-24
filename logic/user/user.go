@@ -38,11 +38,11 @@ func Create(p *models.ParamsSignUp) int {
 		return code.CodeServerBusy
 	}
 	if emailExist {
-		return code.CodeUserNameExist
+		return code.CodeEmailExist
 	}
 
 	// 4. check whether the ecode has expired
-	eCode, err := redis.GetECode(p.Uid)
+	eCode, err := redis.GetECode(p.Email)
 	if err == redis.Nil {
 		// no ecode or ecode expired
 		return code.CodeECodeExpired
@@ -60,16 +60,18 @@ func Create(p *models.ParamsSignUp) int {
 
 	// 6. insert the new user to db
 	u := &models.User{
-		Uid:      p.Uid,
+		UserPublicInfo: &models.UserPublicInfo{
+			Uid:    p.Uid,
+			Name:   p.Name,
+			Avatar: settings.Conf.SundriesConfig.DefaultAvatar,
+		},
 		PassWord: p.Password,
-		Name:     p.Name,
 		Email:    p.Email,
-		Avatar:   settings.Conf.SundriesConfig.DefaultAvatar,
 	}
 	if err := mysql.InsertUser(u); err != nil {
 		zap.L().Error("insert user to db failed", zap.Error(err))
 		return code.CodeServerBusy
 	}
 	// success
-	return code.CodeOK
+	return code.CodeCreated
 }

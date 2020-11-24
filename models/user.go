@@ -1,9 +1,13 @@
 package models
 
+type UserPublicInfo struct {
+	Uid    string `db:"uid"`
+	Name   string `db:"name"`
+	Avatar string `db:"avatar"`
+}
+
 type User struct {
-	Uid      string `db:"uid"`
+	*UserPublicInfo
 	PassWord string `db:"password"`
-	Name     string `db:"name"`
 	Email    string `db:"email"`
-	Avatar   string `db:"avatar"`
 }
