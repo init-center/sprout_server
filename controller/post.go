@@ -15,9 +15,6 @@ func (pc *PostController) Create(c *gin.Context) {
 	// 1. verify params
 	var p models.ParamsAddPost
 	if err := c.ShouldBindJSON(&p); err != nil {
-		// params error
-		// we use the shouldBindJSON and use the binding tag on model
-		// the gin can help us to verify params
 		response.Send(c, code.CodeInvalidParams)
 		return
 	}
@@ -33,9 +30,6 @@ func (pc *PostController) Create(c *gin.Context) {
 func (pc *PostController) GetPostList(c *gin.Context) {
 	var qs models.QueryStringGetPostList
 	if err := c.ShouldBindQuery(&qs); err != nil {
-		// params error
-		// we use the shouldBindJSON and use the binding tag on model
-		// the gin can help us to verify params
 		response.Send(c, code.CodeInvalidParams)
 		return
 	}
@@ -52,9 +46,6 @@ func (pc *PostController) GetPostList(c *gin.Context) {
 func (pc *PostController) GetPostDetail(c *gin.Context) {
 	var p models.UriGetPostDetail
 	if err := c.ShouldBindUri(&p); err != nil {
-		// params error
-		// we use the shouldBindJSON and use the binding tag on model
-		// the gin can help us to verify params
 		response.Send(c, code.CodeInvalidParams)
 		return
 	}

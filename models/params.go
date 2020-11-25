@@ -43,8 +43,8 @@ type ParamsAddPost struct {
 }
 
 type QueryStringGetPostList struct {
-	Page  int64 `form:"page,default=1",binding:"gte=1"`
-	Limit int64 `form:"limit,default=10",binding:"gte=1"`
+	Page  int64 `form:"page" binding:"gte=1"`
+	Limit int64 `form:"limit" binding:"gte=1"`
 }
 
 type UriGetPostDetail struct {
@@ -60,16 +60,16 @@ type ParamsAddComment struct {
 
 type ParamsGetCommentList struct {
 	Pid        int64 `uri:"pid"`
-	Page       int64 `form:"page,default=1",binding:"gte=1"`
-	Limit      int64 `form:"limit,default=5",binding:"gte=1"`
-	ChildLimit int64 `form:"child_limit,default=2",binding:"gte=1"`
+	Page       int64 `form:"page" binding:"gte=1"`
+	Limit      int64 `form:"limit" binding:"gte=1"`
+	ChildLimit int64 `form:"child_limit,default=2" binding:"gte=1"`
 }
 
 type ParamsGetParentCommentChildren struct {
 	Pid   int64 `uri:"pid"`
 	Cid   int64 `uri:"cid"`
-	Page  int64 `form:"page,default=1",binding:"gte=1"`
-	Limit int64 `form:"limit,default=5",binding:"gte=1"`
+	Page  int64 `form:"page" binding:"gte=1"`
+	Limit int64 `form:"limit" binding:"gte=1"`
 }
 
 type ParamsPostFavorite struct {
