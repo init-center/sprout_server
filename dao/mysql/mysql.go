@@ -15,7 +15,10 @@ var db *sqlx.DB
 
 func Init(cfg *settings.MySQLConfig) (err error) {
 	// get the db serve name from config
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True",
+
+	// go sql driver default timezone is utc
+	// use parseTime=True&loc=Local to set the local timezone
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		cfg.User,
 		cfg.Password,
 		cfg.Host,

@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"sprout_server/common/constant"
+	"sprout_server/common/constants"
 	"sprout_server/common/response"
 	"sprout_server/common/response/code"
 	"sprout_server/dao/mysql"
@@ -11,7 +11,7 @@ import (
 
 func AdminAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uid, ok := c.Get(constant.CtxUidKey)
+		uid, ok := c.Get(constants.CtxUidKey)
 		if !ok {
 			response.Send(c, code.CodeNeedLogin)
 			c.Abort()
@@ -19,7 +19,7 @@ func AdminAuth() gin.HandlerFunc {
 		}
 
 		group, err := mysql.GetUserGroup(uid.(string))
-		if err != nil || group != constant.UserGroupAdmin {
+		if err != nil || group != constants.UserGroupAdmin {
 			response.Send(c, code.CodePermissionDenied)
 			c.Abort()
 			return

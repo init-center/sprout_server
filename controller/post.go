@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"sprout_server/common/constants"
 	"sprout_server/common/response"
 	"sprout_server/common/response/code"
 	"sprout_server/logic/post"
@@ -20,7 +21,11 @@ func (pc *PostController) Create(c *gin.Context) {
 		return
 	}
 	// 2. logic handle
-	statusCode := post.Create(&p)
+	uid, exist := c.Get(constants.CtxUidKey)
+	if !exist {
+		response.Send(c, code.CodeNeedLogin)
+	}
+	statusCode := post.Create(&p, uid.(string))
 
 	// 3. response result
 	response.Send(c, statusCode)

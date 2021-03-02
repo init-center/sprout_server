@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"sprout_server/common/constant"
+	"sprout_server/common/constants"
 	"sprout_server/common/jwt"
 	"sprout_server/common/response"
 	"sprout_server/common/response/code"
@@ -35,7 +35,7 @@ func JwtAuth() gin.HandlerFunc {
 
 		// verify token success
 		// set the uid to gin context
-		c.Set(constant.CtxUidKey, mc.Uid)
+		c.Set(constants.CtxUidKey, mc.Uid)
 		c.Next()
 	}
 }

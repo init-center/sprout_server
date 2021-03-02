@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"math/rand"
 	"net/smtp"
-	"sprout_server/common/constant"
+	"sprout_server/common/constants"
 	"sprout_server/common/response/code"
 	"sprout_server/dao/mysql"
 	"sprout_server/dao/redis"
@@ -21,7 +21,7 @@ import (
 
 func SendCodeToEmail(p *models.ParamsGetECode) int {
 	// If it is sign up,Check that the mail is available
-	if p.Type == constant.EcodeSignUpType {
+	if p.Type == constants.EcodeSignUpType {
 		emailExist, err := mysql.CheckEmailExist(p.Email)
 		if err != nil {
 			zap.L().Error("check email exist failed", zap.Error(err))
@@ -40,7 +40,7 @@ func SendCodeToEmail(p *models.ParamsGetECode) int {
 		if err != nil && err != redis.Nil {
 			zap.L().Error("get ecode count failed", zap.Error(err))
 			return code.CodeServerBusy
-		} else if count < constant.MaxEcodeCount {
+		} else if count < constants.MaxEcodeCount {
 			// gen ecode
 			eCode := genECode()
 			// send code to email
@@ -49,7 +49,7 @@ func SendCodeToEmail(p *models.ParamsGetECode) int {
 			}
 			// send success
 			// store the ecode to redis
-			_, err := redis.SetECode(p.Email, eCode, constant.ECodeExpireTime*time.Minute)
+			_, err := redis.SetECode(p.Email, eCode, constants.ECodeExpireTime*time.Minute)
 			if err != nil {
 				zap.L().Error("store the ecode to rdb failed", zap.Error(err))
 				return code.CodeServerBusy
@@ -81,7 +81,7 @@ func send(p *models.ParamsGetECode, eCode string) error {
 	}
 	data := &models.ECodeData{
 		Email: p.Email,
-		Type:  constant.EcodeTypeNameMap[p.Type],
+		Type:  constants.EcodeTypeNameMap[p.Type],
 		ECode: eCode,
 		Time:  time.Now().Format("2006-01-02 15:04:05"),
 	}

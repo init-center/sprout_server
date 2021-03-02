@@ -41,6 +41,7 @@ func Setup() (*gin.Engine, error) {
 		sessionController := &controller.SessionController{}
 		session.POST("", sessionController.SignIn)
 		session.GET("", middlewares.JwtAuth(), sessionController.CheckSignIn)
+		session.GET("/admin", middlewares.JwtAuth(), middlewares.AdminAuth(), sessionController.CheckSignIn)
 	}
 
 	vCode := r.Group("/vcode")

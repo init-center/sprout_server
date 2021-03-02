@@ -10,20 +10,10 @@ import (
 	"go.uber.org/zap"
 )
 
-func Create(p *models.ParamsAddPost) int {
-	// check the user exist
-	exist, err := mysql.CheckUidExist(p.Uid)
-	if err != nil {
-		zap.L().Error("check uid exist failed", zap.Error(err))
-		return code.CodeServerBusy
-	}
-
-	if !exist {
-		return code.CodeUserNotExist
-	}
+func Create(p *models.ParamsAddPost, uid string) int {
 
 	// check the category exist
-	exist, err = mysql.CheckCategoryExistById(p.Category)
+	exist, err := mysql.CheckCategoryExistById(p.Category)
 	if err != nil {
 		zap.L().Error("check category exist by id failed", zap.Error(err))
 		return code.CodeServerBusy
@@ -46,7 +36,7 @@ func Create(p *models.ParamsAddPost) int {
 		}
 	}
 
-	if err := mysql.CreatePost(p); err != nil {
+	if err := mysql.CreatePost(p, uid); err != nil {
 		zap.L().Error("create post failed", zap.Error(err))
 		if err.Error() == "cannot top deleted article" {
 			return code.CodeCantTopDeletePost

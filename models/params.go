@@ -29,7 +29,6 @@ type ParamsAddTag struct {
 }
 
 type ParamsAddPost struct {
-	Uid           string   `json:"uid" binding:"required,min=2,max=12,checkUid"`
 	Category      uint64   `json:"category" binding:"required"`
 	Tags          []uint64 `json:"tags" binding:"required,min=1,max=20"`
 	Title         string   `json:"title" binding:"required,min=1,max=128"`

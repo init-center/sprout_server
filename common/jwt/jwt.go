@@ -2,7 +2,7 @@ package jwt
 
 import (
 	"errors"
-	"sprout_server/common/constant"
+	"sprout_server/common/constants"
 	"sprout_server/settings"
 	"strings"
 	"time"
@@ -22,7 +22,7 @@ func GenToken(uid string) (string, error) {
 			Issuer:    "init.center",
 			IssuedAt:  time.Now().Unix(),
 			NotBefore: time.Now().Unix(),
-			ExpiresAt: time.Now().Add(constant.TokenExpireDuration).Unix(),
+			ExpiresAt: time.Now().Add(constants.TokenExpireDuration).Unix(),
 		},
 	}
 	secret := genSecret()

@@ -19,13 +19,13 @@ type TopPost struct {
 	TopTime *time.Time `json:"topTime" db:"top_time"`
 }
 
-func CreatePost(p *models.ParamsAddPost) (err error) {
+func CreatePost(p *models.ParamsAddPost, uid string) (err error) {
 	var pid = snowflake.GenID()
 
 	//gen txFunc
 	txFunc := func(tx *sqlx.Tx) (err error) {
 		postSqlStr := `INSERT INTO t_post(uid, pid, category, title, cover, bgm, summary, content) VALUES(?, ?, ?, ?, ?, ?, ?, ?)`
-		_, err = tx.Exec(postSqlStr, p.Uid, pid, p.Category, p.Title, p.Cover, p.Bgm, p.Summary, p.Content)
+		_, err = tx.Exec(postSqlStr, uid, pid, p.Category, p.Title, p.Cover, p.Bgm, p.Summary, p.Content)
 		if err != nil {
 			return
 		}

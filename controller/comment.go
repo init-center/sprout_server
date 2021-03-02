@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"sprout_server/common/constant"
+	"sprout_server/common/constants"
 	"sprout_server/common/response"
 	"sprout_server/common/response/code"
 	"sprout_server/logic/comment"
@@ -33,7 +33,7 @@ func (cc *CommentController) CreatePostComment(c *gin.Context) {
 	p.Pid = pid
 	// 2. logic handle
 	// get uid from context
-	uid, exist := c.Get(constant.CtxUidKey)
+	uid, exist := c.Get(constants.CtxUidKey)
 	if !exist {
 		response.Send(c, code.CodeUserNotExist)
 		return
