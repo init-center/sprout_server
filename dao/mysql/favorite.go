@@ -22,3 +22,12 @@ func CheckUserFavoritePost(p *models.ParamsPostFavorite) (bool, error) {
 	}
 	return count > 0, nil
 }
+
+func GetPostFavoriteCount(pid uint64) (count uint64, err error) {
+	sqlStr := `SELECT count(id) FROM t_post_favorite WHERE pid = ?`
+	if err := db.Get(&count, sqlStr, pid); err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}

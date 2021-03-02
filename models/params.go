@@ -29,50 +29,69 @@ type ParamsAddTag struct {
 }
 
 type ParamsAddPost struct {
-	Uid         string  `json:"uid" binding:"required,min=2,max=12,checkUid"`
-	Category    int64   `json:"category" binding:"required"`
-	Tags        []int64 `json:"tags" binding:"required,min=1,max=20"`
-	Title       string  `json:"title" binding:"required,min=1,max=128"`
-	Cover       string  `json:"cover" binding:"required,url"`
-	Bgm         string  `json:"bgm" binding:"required,url"`
-	Summary     string  `json:"summary" binding:"required,max=128"`
-	Content     string  `json:"content" binding:"required"`
-	Display     int8    `json:"display" binding:"oneof=0 1"`
-	CommentOpen int8    `json:"commentOpen" binding:"oneof=0 1"`
-	Top         int8    `json:"top" binding:"oneof=0 1"`
+	Uid           string   `json:"uid" binding:"required,min=2,max=12,checkUid"`
+	Category      uint64   `json:"category" binding:"required"`
+	Tags          []uint64 `json:"tags" binding:"required,min=1,max=20"`
+	Title         string   `json:"title" binding:"required,min=1,max=128"`
+	Cover         string   `json:"cover" binding:"required,url"`
+	Bgm           string   `json:"bgm" binding:"required,url"`
+	Summary       string   `json:"summary" binding:"required,gte=2,max=128"`
+	Content       string   `json:"content" binding:"required,gte=2"`
+	IsDisplay     uint8    `json:"isDisplay" binding:"oneof=0 1"`
+	IsCommentOpen uint8    `json:"isCommentOpen" binding:"oneof=0 1"`
+	IsTop         uint8    `json:"isTop" binding:"oneof=0 1"`
+	IsDelete      *uint8   `json:"isDelete" binding:"oneof=0 1"`
 }
 
 type QueryStringGetPostList struct {
-	Page  int64 `form:"page" binding:"gte=1"`
-	Limit int64 `form:"limit" binding:"gte=1"`
+	Page  uint64 `form:"page" binding:"gte=1"`
+	Limit uint64 `form:"limit" binding:"gte=1"`
 }
 
 type UriGetPostDetail struct {
-	Pid int64 `uri:"pid" binding:"required"`
+	Pid uint64 `uri:"pid" binding:"required"`
 }
 
 type ParamsAddComment struct {
-	Pid       int64  `uri:"pid"`
+	Pid       uint64 `uri:"pid"`
 	Uid       string `json:"uid"`
-	TargetCid int64  `json:"targetCid,string"`
+	TargetCid uint64 `json:"targetCid,string"`
 	Content   string `json:"content" binding:"required,min=1,max=1024"`
 }
 
 type ParamsGetCommentList struct {
-	Pid        int64 `uri:"pid"`
-	Page       int64 `form:"page" binding:"gte=1"`
-	Limit      int64 `form:"limit" binding:"gte=1"`
-	ChildLimit int64 `form:"child_limit,default=2" binding:"gte=1"`
+	Pid        uint64 `uri:"pid"`
+	Page       uint64 `form:"page" binding:"gte=1"`
+	Limit      uint64 `form:"limit" binding:"gte=1"`
+	ChildLimit uint64 `form:"child_limit,default=2" binding:"gte=1"`
 }
 
 type ParamsGetParentCommentChildren struct {
-	Pid   int64 `uri:"pid"`
-	Cid   int64 `uri:"cid"`
-	Page  int64 `form:"page" binding:"gte=1"`
-	Limit int64 `form:"limit" binding:"gte=1"`
+	Pid   uint64 `uri:"pid"`
+	Cid   uint64 `uri:"cid"`
+	Page  uint64 `form:"page" binding:"gte=1"`
+	Limit uint64 `form:"limit" binding:"gte=1"`
 }
 
 type ParamsPostFavorite struct {
-	Pid int64 `uri:"pid"`
+	Pid uint64 `uri:"pid"`
 	Uid string
+}
+
+type UriUpdatePost struct {
+	Pid uint64 `uri:"pid" binding:"required"`
+}
+
+type ParamsUpdatePost struct {
+	Category      *uint64  `json:"category" binding:"omitempty"`
+	Tags          []uint64 `json:"tags" binding:"omitempty,min=1,max=20"`
+	Title         *string  `json:"title" binding:"omitempty,min=1,max=128"`
+	Cover         *string  `json:"cover" binding:"omitempty,url"`
+	Bgm           *string  `json:"bgm" binding:"omitempty,url"`
+	Summary       *string  `json:"summary" binding:"omitempty,gte=2,max=128"`
+	Content       *string  `json:"content" binding:"omitempty,gte=2"`
+	IsDisplay     *uint8   `json:"isDisplay" binding:"omitempty,oneof=0 1"`
+	IsCommentOpen *uint8   `json:"isCommentOpen" binding:"omitempty,oneof=0 1"`
+	IsTop         *uint8   `json:"isTop" binding:"omitempty,oneof=0 1"`
+	IsDelete      *uint8   `json:"isDelete" binding:"omitempty,oneof=0 1"`
 }

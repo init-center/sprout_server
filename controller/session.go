@@ -34,3 +34,8 @@ func (s *SessionController) SignIn(c *gin.Context) {
 	})
 
 }
+
+func (s *SessionController) CheckSignIn(c *gin.Context) {
+	response.Send(c, code.CodeOK)
+
+}

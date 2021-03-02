@@ -1,6 +1,9 @@
 package transaction
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -18,6 +21,7 @@ func Start(db *sqlx.DB, txFunc TxFunc) (err error) {
 	defer func() {
 		if p := recover(); p != nil {
 			_ = tx.Rollback()
+			err = errors.New(fmt.Sprintf("%v", p))
 		} else if err != nil {
 			_ = tx.Rollback()
 		} else {

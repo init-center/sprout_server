@@ -1,7 +1,7 @@
 package models
 
 type TagData struct {
-	Id   int    `db:"id" json:"id"`
+	Id   uint64 `db:"id" json:"id"`
 	Name string `db:"name" json:"name"`
 }
 

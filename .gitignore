@@ -24,3 +24,7 @@
 # cofig file
 /config.yaml
 /config.json
+
+# ide files
+.idea
+.vscode

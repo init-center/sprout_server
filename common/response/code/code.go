@@ -27,9 +27,10 @@ const (
 	CodeCommentNotExist
 	CodeAlreadyFavorited
 	CodeNotFavorited
+	CodeCantTopDeletePost
 )
 
-var CodeMessageMap = map[int]string{
+var MessageMap = map[int]string{
 	CodeOK:               "成功",
 	CodeCreated:          "创建成功",
 	CodeInvalidParams:    "参数错误",
@@ -55,10 +56,11 @@ var CodeMessageMap = map[int]string{
 	CodeCommentNotExist:      "目标评论不存在",
 	CodeAlreadyFavorited:     "已经喜欢",
 	CodeNotFavorited:         "还未喜欢",
+	CodeCantTopDeletePost:    "不能置顶删除的文章",
 }
 
 // Error code mapping HTTP status code
-var CodeHCodeMap = map[int]int{
+var HCodeMap = map[int]int{
 	CodeOK:               http.StatusOK,
 	CodeCreated:          http.StatusCreated,
 	CodeInvalidParams:    http.StatusUnprocessableEntity,
@@ -84,21 +86,22 @@ var CodeHCodeMap = map[int]int{
 	CodeCommentNotExist:      http.StatusNotFound,
 	CodeAlreadyFavorited:     http.StatusNoContent,
 	CodeNotFavorited:         http.StatusNotFound,
+	CodeCantTopDeletePost:    http.StatusConflict,
 }
 
 func Msg(code int) string {
-	msg, ok := CodeMessageMap[code]
+	msg, ok := MessageMap[code]
 	if !ok {
-		return CodeMessageMap[CodeServerBusy]
+		return MessageMap[CodeServerBusy]
 	}
 
 	return msg
 }
 
 func HCode(code int) int {
-	hCode, ok := CodeHCodeMap[code]
+	hCode, ok := HCodeMap[code]
 	if !ok {
-		return CodeHCodeMap[CodeServerBusy]
+		return HCodeMap[CodeServerBusy]
 	}
 
 	return hCode

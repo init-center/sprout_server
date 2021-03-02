@@ -25,7 +25,7 @@ func (cc *CommentController) CreatePostComment(c *gin.Context) {
 	}
 
 	// get pid
-	pid, err := strconv.ParseInt(c.Param("pid"), 10, 64)
+	pid, err := strconv.ParseUint(c.Param("pid"), 10, 64)
 	if err != nil {
 		response.Send(c, code.CodePostNotExist)
 		return
@@ -53,7 +53,7 @@ func (cc *CommentController) GetPostCommentList(c *gin.Context) {
 		response.Send(c, code.CodeInvalidParams)
 		return
 	}
-	pid, err := strconv.ParseInt(c.Param("pid"), 10, 64)
+	pid, err := strconv.ParseUint(c.Param("pid"), 10, 64)
 	if err != nil {
 		response.Send(c, code.CodeInvalidParams)
 		return
@@ -74,14 +74,14 @@ func (cc *CommentController) GetPostParentCommentChildren(c *gin.Context) {
 		response.Send(c, code.CodeInvalidParams)
 		return
 	}
-	pid, err := strconv.ParseInt(c.Param("pid"), 10, 64)
+	pid, err := strconv.ParseUint(c.Param("pid"), 10, 64)
 	if err != nil {
 		response.Send(c, code.CodeInvalidParams)
 		return
 	}
 	p.Pid = pid
 
-	cid, err := strconv.ParseInt(c.Param("cid"), 10, 64)
+	cid, err := strconv.ParseUint(c.Param("cid"), 10, 64)
 	if err != nil {
 		response.Send(c, code.CodeInvalidParams)
 		return

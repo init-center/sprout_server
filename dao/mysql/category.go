@@ -17,7 +17,7 @@ func CheckCategoryExistByName(name string) (bool, error) {
 	return count > 0, nil
 }
 
-func CheckCategoryExistById(id int64) (bool, error) {
+func CheckCategoryExistById(id uint64) (bool, error) {
 	sqlStr := `SELECT count(id) FROM t_post_category WHERE id = ?`
 	var count int
 	if err := db.Get(&count, sqlStr, id); err != nil {

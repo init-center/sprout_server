@@ -5,13 +5,13 @@ import (
 	"sprout_server/models"
 )
 
-func getUidByCid(cid int64) (uid string, err error) {
+func getUidByCid(cid uint64) (uid string, err error) {
 	sqlStr := `SELECT uid FROM t_post_comment WHERE cid = ?`
 	err = db.Get(&uid, sqlStr, cid)
 	return
 }
 
-func getParentCidByTargetCid(targetCid int64) (parentCid int64, err error) {
+func getParentCidByTargetCid(targetCid uint64) (parentCid uint64, err error) {
 	sqlStr := `SELECT parent_cid FROM t_post_comment WHERE cid = ?`
 	err = db.Get(&parentCid, sqlStr, targetCid)
 	return
@@ -54,7 +54,7 @@ func CreatePostComment(p *models.ParamsAddComment) (err error) {
 	return
 }
 
-func CheckPostCommentExist(cid int64) (bool, error) {
+func CheckPostCommentExist(cid uint64) (bool, error) {
 	sqlStr := `SELECT count(id) FROM t_post_comment WHERE cid = ?`
 	var count int
 	if err := db.Get(&count, sqlStr, cid); err != nil {
@@ -63,9 +63,9 @@ func CheckPostCommentExist(cid int64) (bool, error) {
 	return count > 0, nil
 }
 
-func GetPostCommentCount(pid int64) (int64, error) {
+func GetPostCommentCount(pid uint64) (uint64, error) {
 	sqlStr := `SELECT count(id) FROM t_post_comment WHERE pid = ?`
-	var count int64
+	var count uint64
 	if err := db.Get(&count, sqlStr, pid); err != nil {
 		return 0, err
 	}

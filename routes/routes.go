@@ -40,6 +40,7 @@ func Setup() (*gin.Engine, error) {
 	{
 		sessionController := &controller.SessionController{}
 		session.POST("", sessionController.SignIn)
+		session.GET("", middlewares.JwtAuth(), sessionController.CheckSignIn)
 	}
 
 	vCode := r.Group("/vcode")
@@ -66,8 +67,26 @@ func Setup() (*gin.Engine, error) {
 	{
 		postController := &controller.PostController{}
 		post.POST("", middlewares.JwtAuth(), middlewares.AdminAuth(), postController.Create)
+		post.PUT("/:pid", middlewares.JwtAuth(), middlewares.AdminAuth(), postController.Update)
 		post.GET("", postController.GetPostList)
 		post.GET("/:pid", postController.GetPostDetail)
+	}
+
+	top := r.Group("/top")
+	{
+		postController := &controller.PostController{}
+		top.GET("/post", postController.GetTopPost)
+	}
+
+	admin := r.Group("/admin", middlewares.JwtAuth(), middlewares.AdminAuth())
+	{
+		adminPost := admin.Group("/posts")
+		{
+			adminPostController := &controller.PostController{}
+			adminPost.GET("", adminPostController.GetPostListByAdmin)
+			adminPost.GET("/:pid", adminPostController.GetPostDetailByAdmin)
+
+		}
 	}
 
 	comment := r.Group("/comments")

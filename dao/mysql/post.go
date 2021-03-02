@@ -2,15 +2,22 @@ package mysql
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"sprout_server/common/snowflake"
+	"sprout_server/common/tools"
 	"sprout_server/common/transaction"
 	"sprout_server/models"
+	"sprout_server/models/queryfields"
 	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 )
+
+type TopPost struct {
+	TopTime *time.Time `json:"topTime" db:"top_time"`
+}
 
 func CreatePost(p *models.ParamsAddPost) (err error) {
 	var pid = snowflake.GenID()
@@ -24,10 +31,38 @@ func CreatePost(p *models.ParamsAddPost) (err error) {
 		}
 
 		postConfigSqlStr := `INSERT INTO t_post_config(pid, display, comment_open, top_time) VALUES(?, ?, ?, ?)`
-		if p.Top == 1 {
-			_, err = tx.Exec(postConfigSqlStr, pid, p.Display, p.CommentOpen, time.Now())
-		} else {
-			_, err = tx.Exec(postConfigSqlStr, pid, p.Display, p.CommentOpen, nil)
+		if p.IsTop == 1 {
+			if *p.IsDelete == 1 {
+				return errors.New("cannot top deleted article")
+			}
+			cancelTopSql := `UPDATE t_post_config SET top_time = NULL WHERE top_time IS NOT NULL;`
+			_, err = tx.Exec(cancelTopSql)
+			_, err = tx.Exec(postConfigSqlStr, pid, p.IsDisplay, p.IsCommentOpen, time.Now())
+		} else if p.IsTop == 0 {
+			_, err = tx.Exec(postConfigSqlStr, pid, p.IsDisplay, p.IsCommentOpen, nil)
+
+			// If there is no pinned post, set the first post as a pinned article
+			var tp TopPost
+
+			err = tx.Get(&tp, `SELECT top_time FROM t_post_config WHERE top_time IS NOT NULL LIMIT 1`)
+			if err != nil && err != sql.ErrNoRows {
+				return
+			}
+
+			if err == sql.ErrNoRows {
+				_, err = tx.Exec(`
+					UPDATE t_post_config pc 
+					LEFT JOIN t_post p 
+					ON pc.pid = p.pid 
+					SET pc.top_time = NOW() 
+					WHERE p.delete_time IS NULL 
+					AND pc.display = 1
+					AND p.id = (SELECT MIN(id) FROM t_post)`)
+				if err != nil {
+					return
+				}
+			}
+
 		}
 
 		if err != nil {
@@ -62,7 +97,169 @@ func CreatePost(p *models.ParamsAddPost) (err error) {
 	return
 }
 
-func CheckPostExistById(pid int64) (bool, error) {
+func UpdatePost(p *models.ParamsUpdatePost, u *models.UriUpdatePost) (err error) {
+	pid := u.Pid
+	//gen txFunc
+	txFunc := func(tx *sqlx.Tx) (err error) {
+		postSqlStr := `UPDATE t_post SET 
+		category = IFNULL(?, category), 
+		title = IFNULL(?, title), 
+		cover = IFNULL(?, cover),
+		delete_time = CASE ? WHEN NULL THEN delete_time 
+		WHEN 0 THEN NULL 
+		WHEN 1 THEN NOW() 
+		ELSE delete_time END,
+		bgm = IFNULL(?, bgm),
+		summary = IFNULL(?, summary),
+		content = IFNULL(?, content) 
+		WHERE pid = ?
+		`
+		_, err = tx.Exec(postSqlStr, p.Category, p.Title, p.Cover, p.IsDelete, p.Bgm, p.Summary, p.Content, pid)
+		if err != nil {
+			return
+		}
+
+		uriGetPostDetail := &models.UriGetPostDetail{
+			Pid: pid,
+		}
+
+		if p.IsTop != nil && *p.IsTop == 1 {
+			post, err := GetPostDetailByAdmin(uriGetPostDetail)
+			if err != nil {
+				return err
+			}
+
+			if (p.IsDelete != nil && *p.IsDelete == 1) || post.DeleteTime != nil {
+				return errors.New("cannot top deleted article")
+			}
+			cancelTopSql := `UPDATE t_post_config SET top_time = NULL WHERE top_time IS NOT NULL;`
+			_, err = tx.Exec(cancelTopSql)
+			if err != nil {
+				return err
+			}
+		}
+
+		postConfigSqlStr := `UPDATE t_post_config SET 
+		display = CASE ? WHEN NULL THEN display 
+		WHEN 0 THEN 0 
+		WHEN 1 THEN 1 
+		ELSE display END, 
+		comment_open = CASE ? WHEN NULL THEN comment_open 
+		WHEN 0 THEN 0 
+		WHEN 1 THEN 1 
+		ELSE comment_open END, 
+		top_time = CASE ? WHEN NULL THEN top_time 
+		WHEN 0 THEN NULL 
+		WHEN 1 THEN NOW() 
+		ELSE top_time END 
+		WHERE pid = ?`
+
+		_, err = tx.Exec(postConfigSqlStr, p.IsDisplay, p.IsCommentOpen, p.IsTop, pid)
+
+		if err != nil {
+			return
+		}
+
+		if p.IsTop != nil && *p.IsTop == 0 {
+
+			var tp TopPost
+
+			err = tx.Get(&tp, `SELECT top_time FROM t_post_config WHERE top_time IS NOT NULL LIMIT 1`)
+			if err != nil && err != sql.ErrNoRows {
+				return
+			}
+
+			if err == sql.ErrNoRows {
+				_, err = tx.Exec(`
+					UPDATE t_post_config pc
+					LEFT JOIN t_post p
+					ON pc.pid = p.pid
+					SET pc.top_time = NOW()
+					WHERE p.delete_time IS NULL
+					AND pc.display = 1
+					AND p.id = (SELECT MIN(id) FROM t_post)`)
+
+				if err != nil {
+					return
+				}
+			}
+		}
+
+		if p.Tags != nil {
+			existedTags, err := GetTagsByPid(pid)
+			if err != nil {
+				return err
+			}
+
+			// convert tags to []interface{}
+			s := make([]interface{}, len(p.Tags))
+			for i, v := range p.Tags {
+				s[i] = v
+			}
+
+			var WillDisConnectTags []uint64
+			for _, tag := range existedTags {
+
+				includes := tools.Contains(s, tag.Id)
+				if !includes {
+					WillDisConnectTags = append(WillDisConnectTags, tag.Id)
+				}
+			}
+
+			var WillAddTags []uint64
+			for _, tid := range p.Tags {
+				found := false
+				for _, tag := range existedTags {
+					existedTid := tag.Id
+					if existedTid == tid {
+						found = true
+						break
+					}
+				}
+				if !found {
+					WillAddTags = append(WillAddTags, tid)
+				}
+			}
+
+			// delete tags
+			deleteTagSqlStr := `DELETE FROM t_post_tag_relation WHERE pid = ? AND tid = ?`
+			for _, tid := range WillDisConnectTags {
+				_, err = tx.Exec(deleteTagSqlStr, pid, tid)
+				if err != nil {
+					return err
+				}
+			}
+
+			// add tags
+			if len(WillAddTags) > 0 {
+				// store (?, ?) slice
+				valueStrings := make([]string, 0, len(WillAddTags))
+				// store values slice
+				valueArgs := make([]interface{}, 0, len(WillAddTags)*2)
+				// range tags to prepare data
+				for _, u := range WillAddTags {
+					valueStrings = append(valueStrings, "(?, ?)")
+					valueArgs = append(valueArgs, pid)
+					valueArgs = append(valueArgs, u)
+				}
+				// join stmt
+				postTagRelationSqlStr := fmt.Sprintf("INSERT INTO t_post_tag_relation(pid, tid) VALUES%s",
+					strings.Join(valueStrings, ","))
+				_, err = tx.Exec(postTagRelationSqlStr, valueArgs...)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		return
+	}
+
+	// start a transaction
+	err = transaction.Start(db, txFunc)
+	return
+}
+
+func CheckPostExistById(pid uint64) (bool, error) {
 	sqlStr := `SELECT count(id) FROM t_post WHERE pid = ?`
 	var count int
 	if err := db.Get(&count, sqlStr, pid); err != nil {
@@ -71,7 +268,161 @@ func CheckPostExistById(pid int64) (bool, error) {
 	return count > 0, nil
 }
 
-func getTopPost() (topPost models.PostListItem, err error) {
+func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList models.PostListByAdmin, err error) {
+	sqlStr := `
+	SELECT 
+    DISTINCT p.pid, 
+    p.uid, 
+    p.cover, 
+    p.title, 
+    p.summary, 
+	p.content, 
+    p.category, 
+	p.bgm, 
+	c.name,
+    p.create_time, 
+	p.update_time,
+	p.delete_time,
+    pc.top_time,
+	pc.comment_open,
+	pc.display, 
+	pv.views 
+	FROM t_post p 
+	LEFT JOIN t_post_config pc 
+	ON p.pid = pc.pid 
+	LEFT JOIN t_post_views pv 
+	ON pc.pid = pv.pid 
+	LEFT JOIN t_post_category c 
+	ON p.category = c.id 
+	LEFT JOIN t_post_tag_relation ptr 
+	ON p.pid = ptr.pid 
+	WHERE `
+
+	sqlStr = dynamicConcatSql(sqlStr, queryFields)
+
+	sqlStr += ` ORDER BY p.create_time DESC LIMIT ? OFFSET ?`
+
+	var limit = queryFields.Limit
+
+	err = db.Select(&postList.List, sqlStr, queryFields.Pid, queryFields.Category,
+		queryFields.Tag, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
+		queryFields.Keyword, queryFields.Keyword, queryFields.Limit, (queryFields.Page-1)*limit)
+
+	if len(postList.List) == 0 {
+		postList.List = make([]models.PostItemByAdmin, 0, 0)
+		return
+	}
+	if err != nil {
+		return
+	}
+
+	// get post count
+	postCountSql := `
+	SELECT COUNT(DISTINCT p.id) 
+	FROM t_post p 
+	LEFT JOIN t_post_config pc 
+	ON p.pid = pc.pid 
+	LEFT JOIN t_post_category c 
+	ON p.category = c.id 
+	LEFT JOIN t_post_tag_relation ptr 
+	ON p.pid = ptr.pid
+	WHERE `
+
+	postCountSql = dynamicConcatSql(postCountSql, queryFields)
+
+	err = db.Get(&postList.Page.Count, postCountSql, queryFields.Pid, queryFields.Category,
+		queryFields.Tag, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
+		queryFields.Keyword, queryFields.Keyword)
+	if err != nil {
+		return
+	}
+
+	postList.Page.CurrentPage = queryFields.Page
+	postList.Page.Size = queryFields.Limit
+
+	// get tags
+	tagsSqlStr := `SELECT pt.id, pt.name FROM t_post_tag_relation ptr LEFT JOIN t_post_tag pt ON pt.id = ptr.tid WHERE ptr.pid = ?`
+	for i := range postList.List {
+		err = db.Select(&postList.List[i].Tags, tagsSqlStr, postList.List[i].Pid)
+		if err != nil {
+			return
+		}
+
+		// get favorites
+		postList.List[i].Favorites, err = GetPostFavoriteCount(postList.List[i].Pid)
+
+		// get commentCount
+		postList.List[i].CommentCount, err = GetPostCommentCount(postList.List[i].Pid)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func dynamicConcatSql(sqlStr string, queryFields *queryfields.PostQueryFields) string {
+	if queryFields.IsDisplay == 0 {
+		sqlStr += ` pc.display = 0 `
+	} else if queryFields.IsDisplay == 1 {
+		sqlStr += ` pc.display = 1 `
+	} else {
+		sqlStr += `1 = 1`
+	}
+
+	if queryFields.IsDelete == 0 {
+		sqlStr += ` AND p.delete_time IS NULL `
+	} else if queryFields.IsDelete == 1 {
+		sqlStr += ` AND p.delete_time IS NOT NULL `
+	}
+
+	if queryFields.IsTop == 0 {
+		sqlStr += ` AND pc.top_time IS NULL `
+	} else if queryFields.IsTop == 1 {
+		sqlStr += ` AND pc.top_time IS NOT NULL `
+	}
+
+	if queryFields.IsCommentOpen == 0 {
+		sqlStr += ` AND pc.comment_open = 0 `
+	} else if queryFields.IsCommentOpen == 1 {
+		sqlStr += ` AND pc.comment_open = 1 `
+	}
+
+	if queryFields.Pid != "" {
+		sqlStr += ` AND p.pid = ? `
+	} else {
+		// always true
+		sqlStr += ` AND LENGTH(?) = 0 `
+	}
+
+	if queryFields.Category != 0 {
+		sqlStr += ` AND p.category = ? `
+	} else {
+		sqlStr += ` AND 0 = ? `
+	}
+
+	if queryFields.Tag != 0 {
+		sqlStr += ` AND ptr.tid = ? `
+	} else {
+		sqlStr += ` AND 0 = ? `
+	}
+
+	if queryFields.CreateTimeStart != "" && queryFields.CreateTimeEnd != "" {
+		sqlStr += ` AND (p.create_time >= ? AND p.create_time <= ?) `
+	} else {
+		sqlStr += ` AND LENGTH(?)= 0 AND LENGTH(?) = 0 `
+	}
+
+	if queryFields.Keyword != "" {
+		sqlStr += ` AND (p.content LIKE CONCAT("%", ?, "%") OR p.title LIKE CONCAT("%", ?, "%")) `
+	} else {
+		sqlStr += ` AND LENGTH(?) = 0 AND LENGTH(?) = 0 `
+	}
+
+	return sqlStr
+}
+
+func GetTopPost() (topPost models.PostListItem, err error) {
 	sqlStr := `
 	SELECT 
     p.pid, 
@@ -97,6 +448,19 @@ func getTopPost() (topPost models.PostListItem, err error) {
 	LIMIT 1`
 
 	err = db.Get(&topPost, sqlStr)
+	if err != nil {
+		return
+	}
+	topPost.Tags, err = GetTagsByPid(topPost.Pid)
+	if err != nil {
+		return
+	}
+
+	// get favorites
+	topPost.Favorites, err = GetPostFavoriteCount(topPost.Pid)
+
+	topPost.CommentCount, err = GetPostCommentCount(topPost.Pid)
+
 	return
 }
 
@@ -132,13 +496,12 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 	if qs.Page == 1 {
 		// if the page is 1, get the top post
 		var topPost models.PostListItem
-		topPost, err = getTopPost()
+		topPost, err = GetTopPost()
 		if err != nil && err != sql.ErrNoRows {
 			return
 		}
 		if err == nil {
 			postList.List = append(postList.List, topPost)
-			limit -= 1
 		}
 	}
 
@@ -169,12 +532,14 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 	postList.Page.Size = qs.Limit
 
 	// get tags
-	tagsSqlStr := `SELECT pt.id, pt.name FROM t_post_tag_relation ptr LEFT JOIN t_post_tag pt ON pt.id = ptr.tid WHERE ptr.pid = ?`
 	for i := range postList.List {
-		err = db.Select(&postList.List[i].Tags, tagsSqlStr, postList.List[i].Pid)
+		postList.List[i].Tags, err = GetTagsByPid(postList.List[i].Pid)
 		if err != nil {
 			return
 		}
+
+		// get favorites
+		postList.List[i].Favorites, err = GetPostFavoriteCount(postList.List[i].Pid)
 
 		// get commentCount
 		postList.List[i].CommentCount, err = GetPostCommentCount(postList.List[i].Pid)
@@ -227,6 +592,63 @@ func GetPostDetail(p *models.UriGetPostDetail) (post models.PostDetail, err erro
 	if err != nil {
 		return
 	}
+
+	// get favorites
+	post.Favorites, err = GetPostFavoriteCount(post.Pid)
+
+	// get commentCount
+	post.CommentCount, err = GetPostCommentCount(post.Pid)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func GetPostDetailByAdmin(p *models.UriGetPostDetail) (post models.PostItemByAdmin, err error) {
+
+	sqlStr := `
+	SELECT 
+    p.pid, 
+    p.uid, 
+    p.cover, 
+    p.title, 
+    p.summary, 
+	p.bgm,
+	p.content,
+	pc.comment_open,
+	p.update_time,
+    p.category, 
+	c.name,
+	pv.views,
+    p.create_time, 
+    pc.top_time, 
+    p.create_time,
+    p.delete_time,
+    pc.display 
+	FROM t_post p 
+	LEFT JOIN t_post_config pc 
+	ON p.pid = pc.pid 
+	LEFT JOIN t_post_views pv 
+	ON pc.pid = pv.pid 
+	LEFT JOIN t_post_category c 
+	ON p.category = c.id 
+	WHERE p.pid = ?`
+
+	err = db.Get(&post, sqlStr, p.Pid)
+	if err != nil {
+		return
+	}
+
+	// get tags
+	tagsSqlStr := `SELECT pt.id, pt.name FROM t_post_tag_relation ptr LEFT JOIN t_post_tag pt ON pt.id = ptr.tid WHERE ptr.pid = ?`
+	err = db.Select(&post.Tags, tagsSqlStr, post.Pid)
+	if err != nil {
+		return
+	}
+
+	// get favorites
+	post.Favorites, err = GetPostFavoriteCount(post.Pid)
 
 	// get commentCount
 	post.CommentCount, err = GetPostCommentCount(post.Pid)

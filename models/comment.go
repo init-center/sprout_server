@@ -3,8 +3,8 @@ package models
 import "time"
 
 type BaseCommentItem struct {
-	Cid        int64      `db:"cid" json:"cid,string"`
-	Pid        int64      `db:"pid" json:"pid"`
+	Cid        uint64     `db:"cid" json:"cid,string"`
+	Pid        uint64     `db:"pid" json:"pid"`
 	Uid        string     `db:"uid" json:"uid"`
 	UserName   string     `db:"user_name" json:"userName"`
 	Avatar     string     `db:"avatar" json:"avatar"`
@@ -16,17 +16,17 @@ type BaseCommentItem struct {
 
 type CommentItem struct {
 	*BaseCommentItem
-	TargetCid  int64  `db:"target_cid" json:"targetCid,string"`
+	TargetCid  uint64 `db:"target_cid" json:"targetCid,string"`
 	TargetUid  string `db:"target_uid" json:"targetUid"`
 	TargetName string `db:"target_name" json:"targetName"`
-	ParentCid  int64  `db:"parent_cid" json:"parentCid,string"`
+	ParentCid  uint64 `db:"parent_cid" json:"parentCid,string"`
 	ParentUid  string `db:"parent_uid" json:"parentUid"`
 }
 
 type CommentPage struct {
-	Count       int64 `json:"count"`
-	CurrentPage int64 `json:"currentPage"`
-	Size        int64 `json:"size"`
+	Count       uint64 `json:"count"`
+	CurrentPage uint64 `json:"currentPage"`
+	Size        uint64 `json:"size"`
 }
 
 type Comment struct {

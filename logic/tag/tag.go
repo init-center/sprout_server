@@ -32,7 +32,7 @@ func Create(p *models.ParamsAddTag) int {
 }
 
 func GetAll() (models.Tags, int) {
-	tags, err := mysql.GetAllTag()
+	tags, err := mysql.GetAllTags()
 	if err != nil && err != sql.ErrNoRows {
 		zap.L().Error("get tags failed", zap.Error(err))
 		return tags, code.CodeServerBusy
