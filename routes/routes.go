@@ -88,24 +88,31 @@ func Setup() (*gin.Engine, error) {
 			adminPost.GET("/:pid", adminPostController.GetPostDetailByAdmin)
 
 		}
+
+		adminComment := admin.Group("/comments")
+		{
+			adminCommentController := &controller.CommentController{}
+			adminComment.GET("/posts", adminCommentController.GetAllPostComments)
+			adminComment.PUT("/:cid", adminCommentController.AdminUpdatePostComment)
+		}
 	}
 
 	comment := r.Group("/comments")
 	{
 		commentController := &controller.CommentController{}
-		comment.GET("posts/:pid", commentController.GetPostCommentList)
+		comment.GET("/posts/:pid", commentController.GetPostCommentList)
 		// why not use /:cid/posts/:pid ?
 		// because the gin(httpRouter) does not support it, it will cause conflicts and panic directly
-		comment.GET("posts/:pid/comment/:cid/children", commentController.GetPostParentCommentChildren)
-		comment.POST("posts/:pid", middlewares.JwtAuth(), commentController.CreatePostComment)
+		comment.GET("/posts/:pid/comment/:cid/children", commentController.GetPostParentCommentChildren)
+		comment.POST("/posts/:pid", middlewares.JwtAuth(), commentController.CreatePostComment)
 	}
 
 	favorite := r.Group("/favorites")
 	{
 		favoriteController := &controller.FavoriteController{}
-		favorite.GET("posts/:pid", middlewares.JwtAuth(), favoriteController.CheckUserFavoritePost)
-		favorite.POST("posts/:pid", middlewares.JwtAuth(), favoriteController.AddUserFavoritePost)
-		favorite.DELETE("posts/:pid", middlewares.JwtAuth(), favoriteController.DeleteUserFavoritePost)
+		favorite.GET("/posts/:pid", middlewares.JwtAuth(), favoriteController.CheckUserFavoritePost)
+		favorite.POST("/posts/:pid", middlewares.JwtAuth(), favoriteController.AddUserFavoritePost)
+		favorite.DELETE("/posts/:pid", middlewares.JwtAuth(), favoriteController.DeleteUserFavoritePost)
 	}
 
 	return r, nil

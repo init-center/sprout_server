@@ -4,7 +4,7 @@ import "time"
 
 type BaseCommentItem struct {
 	Cid        uint64     `db:"cid" json:"cid,string"`
-	Pid        uint64     `db:"pid" json:"pid"`
+	Pid        uint64     `db:"pid" json:"pid,string"`
 	Uid        string     `db:"uid" json:"uid"`
 	UserName   string     `db:"user_name" json:"userName"`
 	Avatar     string     `db:"avatar" json:"avatar"`
@@ -16,11 +16,17 @@ type BaseCommentItem struct {
 
 type CommentItem struct {
 	*BaseCommentItem
-	TargetCid  uint64 `db:"target_cid" json:"targetCid,string"`
-	TargetUid  string `db:"target_uid" json:"targetUid"`
-	TargetName string `db:"target_name" json:"targetName"`
-	ParentCid  uint64 `db:"parent_cid" json:"parentCid,string"`
-	ParentUid  string `db:"parent_uid" json:"parentUid"`
+	TargetCid  *uint64 `db:"target_cid" json:"targetCid,string"`
+	TargetUid  *string `db:"target_uid" json:"targetUid"`
+	TargetName *string `db:"target_name" json:"targetName"`
+	ParentCid  *uint64 `db:"parent_cid" json:"parentCid,string"`
+	ParentUid  *string `db:"parent_uid" json:"parentUid"`
+}
+
+type CommentItemByAdmin struct {
+	*CommentItem
+	PostTitle    string `db:"post_title" json:"postTitle"`
+	ReviewStatus uint8  `db:"review_status" json:"reviewStatus"`
 }
 
 type CommentPage struct {
@@ -38,6 +44,11 @@ type Comment struct {
 type CommentList struct {
 	Page CommentPage `json:"page"`
 	List []Comment   `json:"list"`
+}
+
+type CommentItemListByAdmin struct {
+	List []CommentItemByAdmin `json:"list"`
+	Page CommentPage          `json:"page"`
 }
 
 type ParentCommentChildren struct {

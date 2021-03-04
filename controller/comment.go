@@ -6,6 +6,7 @@ import (
 	"sprout_server/common/response/code"
 	"sprout_server/logic/comment"
 	"sprout_server/models"
+	"sprout_server/models/queryfields"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -47,6 +48,26 @@ func (cc *CommentController) CreatePostComment(c *gin.Context) {
 
 }
 
+func (cc *CommentController) AdminUpdatePostComment(c *gin.Context) {
+	var p models.ParamsAdminUpdateComment
+	if err := c.ShouldBindJSON(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+
+	var u models.UriUpdateComment
+	if err := c.ShouldBindUri(&u); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+
+	statusCode := comment.AdminUpdatePostComment(&p, &u)
+
+	response.Send(c, statusCode)
+	return
+
+}
+
 func (cc *CommentController) GetPostCommentList(c *gin.Context) {
 	var p models.ParamsGetCommentList
 	if err := c.ShouldBindQuery(&p); err != nil {
@@ -66,6 +87,22 @@ func (cc *CommentController) GetPostCommentList(c *gin.Context) {
 		return
 	}
 	response.SendWithData(c, statusCode, commentList)
+}
+
+func (cc *CommentController) GetAllPostComments(c *gin.Context) {
+	var p queryfields.CommentQueryFields
+	if err := c.ShouldBindQuery(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+
+	comments, statusCode := comment.GetAllPostComments(&p)
+
+	if statusCode != code.CodeOK {
+		response.Send(c, statusCode)
+		return
+	}
+	response.SendWithData(c, statusCode, comments)
 }
 
 func (cc *CommentController) GetPostParentCommentChildren(c *gin.Context) {

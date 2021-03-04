@@ -70,8 +70,8 @@ CREATE TABLE `t_post` (
 CREATE TABLE `t_post_config` (
     `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增id',
     `pid` bigint(20) UNSIGNED NOT NULL COMMENT '文章id',
-    `comment_open` tinyint(1) UNSIGNED NOT NULL DEFAULT '1' COMMENT '是否开启评论',
-    `display` tinyint(1) UNSIGNED NOT NULL DEFAULT '1' COMMENT '显示隐藏',
+    `comment_open` tinyint(1) UNSIGNED NOT NULL DEFAULT '1' COMMENT '是否开启评论 0：不开启 1：开启',
+    `display` tinyint(1) UNSIGNED NOT NULL DEFAULT '1' COMMENT '显示隐藏 0：隐藏 1：显示',
     `top_time` timestamp NULL DEFAULT NULL COMMENT '置顶时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY  `idx_pid` (`pid`)
@@ -100,7 +100,7 @@ CREATE TABLE `t_post_comment` (
     `content` varchar(1024) NOT NULl COMMENT '评论内容',
     `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发表时间',
     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `review_status` tinyint(2) NOT NULL DEFAULT '0' COMMENT '审核状态',
+    `review_status` tinyint(2) UNSIGNED NOT NULL DEFAULT '0' COMMENT '审核状态 0：未审核 1：通过 2：不通过',
     `delete_time` timestamp NULL DEFAULT NULL COMMENT '删除时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `idx_cid` (`cid`)

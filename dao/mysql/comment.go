@@ -1,8 +1,10 @@
 package mysql
 
 import (
+	"database/sql"
 	"sprout_server/common/snowflake"
 	"sprout_server/models"
+	"sprout_server/models/queryfields"
 )
 
 func getUidByCid(cid uint64) (uid string, err error) {
@@ -12,7 +14,7 @@ func getUidByCid(cid uint64) (uid string, err error) {
 }
 
 func getParentCidByTargetCid(targetCid uint64) (parentCid uint64, err error) {
-	sqlStr := `SELECT parent_cid FROM t_post_comment WHERE cid = ?`
+	sqlStr := `SELECT IFNULL(parent_cid, 0) FROM t_post_comment WHERE cid = ?`
 	err = db.Get(&parentCid, sqlStr, targetCid)
 	return
 }
@@ -217,7 +219,7 @@ func GetPostParentCommentChildren(p *models.ParamsGetParentCommentChildren) (par
 	LIMIT ? 
 	OFFSET ?`
 
-	childTargetNameSql := `SELECT name AS target_name FROM t_user u WHERE u.uid = ?`
+	childTargetNameSql := `SELECT name AS target_name FROM t_user WHERE uid = ?`
 	childCommentCountSqlStr := `
 	SELECT 
 	COUNT(id) 
@@ -246,9 +248,142 @@ func GetPostParentCommentChildren(p *models.ParamsGetParentCommentChildren) (par
 
 	for i := range parentCommentChildren.List {
 		err = db.Get(&parentCommentChildren.List[i].TargetName, childTargetNameSql, parentCommentChildren.List[i].TargetUid)
-		if err != nil {
+		if err != nil && err != sql.ErrNoRows {
 			return
 		}
 	}
 	return
+}
+
+func GetAllPostComments(queryFields *queryfields.CommentQueryFields) (comments models.CommentItemListByAdmin, err error) {
+	sqlStr := `
+	SELECT 
+	pc.cid,
+    pc.pid, 
+	p.title AS post_title, 
+    pc.uid,
+	pc.content,
+	pc.target_cid,
+	pc.target_uid,
+	pc.parent_cid,
+	pc.parent_uid,
+	u.name AS user_name,
+	u.avatar,
+	pc.review_status,
+    pc.create_time, 
+	pc.update_time,
+	pc.delete_time 
+	FROM t_post_comment pc 
+	LEFT JOIN t_user u 
+	ON pc.uid = u.uid 
+	LEFT JOIN t_post p 
+	ON pc.pid = p.pid 
+	WHERE `
+
+	sqlStr = dynamicConcatCommentSql(sqlStr, queryFields)
+	sqlStr += `ORDER BY pc.create_time DESC LIMIT ? OFFSET ?`
+
+	var limit = queryFields.Limit
+
+	err = db.Select(&comments.List, sqlStr, queryFields.Uid, queryFields.Pid,
+		queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
+		queryFields.Limit, (queryFields.Page-1)*limit)
+
+	if len(comments.List) == 0 {
+		comments.List = make([]models.CommentItemByAdmin, 0, 0)
+		return
+	}
+	if err != nil {
+		return
+	}
+
+	targetNameSql := `SELECT name AS target_name FROM t_user WHERE uid = ?`
+	for i := range comments.List {
+		err = db.Get(&comments.List[i].TargetName, targetNameSql, comments.List[i].TargetUid)
+		if err != nil && err != sql.ErrNoRows {
+			return
+		}
+	}
+
+	countSqlStr := `
+	SELECT COUNT(DISTINCT pc.id) 
+	FROM t_post_comment pc 
+	LEFT JOIN t_user u 
+	ON pc.uid = u.uid 
+	LEFT JOIN t_post p 
+	ON pc.pid = p.pid 
+	WHERE `
+	countSqlStr = dynamicConcatCommentSql(countSqlStr, queryFields)
+	err = db.Get(&comments.Page.Count, countSqlStr, queryFields.Uid, queryFields.Pid,
+		queryFields.CreateTimeStart, queryFields.CreateTimeEnd)
+	if err != nil {
+		return
+	}
+
+	comments.Page.CurrentPage = queryFields.Page
+	comments.Page.Size = queryFields.Limit
+
+	return
+
+}
+
+func AdminUpdatePostComment(p *models.ParamsAdminUpdateComment, u *models.UriUpdateComment) (err error) {
+	sqlStr := `
+	UPDATE t_post_comment SET 
+	delete_time = CASE ? WHEN NULL THEN delete_time 
+	WHEN 0 THEN NULL 
+	WHEN 1 THEN NOW() 
+	ELSE delete_time END,
+	review_status = CASE ? WHEN NULL THEN review_status 
+	WHEN 0 THEN 0 
+	WHEN 1 THEN 1 
+	WHEN 2 THEN 2 
+	ELSE review_status END,
+	content = IFNULL(?, content) 
+	WHERE cid = ?`
+
+	_, err = db.Exec(sqlStr, p.IsDelete, p.ReviewState, p.Content, u.Cid)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func dynamicConcatCommentSql(sqlStr string, queryFields *queryfields.CommentQueryFields) string {
+	if queryFields.Uid == "" {
+		sqlStr += ` LENGTH(?) = 0 `
+	} else {
+		sqlStr += ` u.uid = ? `
+	}
+
+	if queryFields.Pid == "" {
+		sqlStr += ` AND LENGTH(?) = 0 `
+	} else {
+		sqlStr += ` AND pc.pid = ? `
+	}
+
+	if queryFields.IsDelete == 0 {
+		sqlStr += ` AND pc.delete_time IS NULL `
+	} else if queryFields.IsDelete == 1 {
+		sqlStr += ` AND pc.delete_time IS NOT NULL `
+	}
+
+	switch queryFields.ReviewStatus {
+	case 0:
+		sqlStr += ` AND pc.review_status = 0 `
+	case 1:
+		sqlStr += ` AND pc.review_status = 1 `
+	case 2:
+		sqlStr += ` AND pc.review_status = 2 `
+	default:
+
+	}
+
+	if queryFields.CreateTimeStart != "" && queryFields.CreateTimeEnd != "" {
+		sqlStr += ` AND (p.create_time >= ? AND p.create_time <= ?) `
+	} else {
+		sqlStr += ` AND LENGTH(?)= 0 AND LENGTH(?) = 0 `
+	}
+
+	return sqlStr
 }

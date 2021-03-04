@@ -5,6 +5,7 @@ import (
 	"sprout_server/common/response/code"
 	"sprout_server/dao/mysql"
 	"sprout_server/models"
+	"sprout_server/models/queryfields"
 
 	"go.uber.org/zap"
 )
@@ -42,6 +43,27 @@ func CreatePostComment(p *models.ParamsAddComment) int {
 	return code.CodeCreated
 }
 
+func AdminUpdatePostComment(p *models.ParamsAdminUpdateComment, u *models.UriUpdateComment) int {
+	// check the comment exist
+	exist, err := mysql.CheckPostCommentExist(u.Cid)
+	if err != nil {
+		zap.L().Error("check comment exist failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if !exist {
+		return code.CodePostNotExist
+	}
+
+	//to update
+	if err := mysql.AdminUpdatePostComment(p, u); err != nil {
+		zap.L().Error("update post comment failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	return code.CodeOK
+}
+
 func GetPostCommentList(p *models.ParamsGetCommentList) (models.CommentList, int) {
 	commentList, err := mysql.GetPostCommentList(p)
 	if err != nil && err != sql.ErrNoRows {
@@ -50,6 +72,16 @@ func GetPostCommentList(p *models.ParamsGetCommentList) (models.CommentList, int
 	}
 
 	return commentList, code.CodeOK
+}
+
+func GetAllPostComments(p *queryfields.CommentQueryFields) (models.CommentItemListByAdmin, int) {
+	comments, err := mysql.GetAllPostComments(p)
+	if err != nil && err != sql.ErrNoRows {
+		zap.L().Error("get all post commentLs failed", zap.Error(err))
+		return comments, code.CodeServerBusy
+	}
+
+	return comments, code.CodeOK
 }
 
 func GetPostParentCommentChildren(p *models.ParamsGetParentCommentChildren) (models.ParentCommentChildren, int) {

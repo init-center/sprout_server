@@ -298,7 +298,7 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 	ON p.pid = ptr.pid 
 	WHERE `
 
-	sqlStr = dynamicConcatSql(sqlStr, queryFields)
+	sqlStr = dynamicConcatPostSql(sqlStr, queryFields)
 
 	sqlStr += ` ORDER BY p.create_time DESC LIMIT ? OFFSET ?`
 
@@ -328,7 +328,7 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 	ON p.pid = ptr.pid
 	WHERE `
 
-	postCountSql = dynamicConcatSql(postCountSql, queryFields)
+	postCountSql = dynamicConcatPostSql(postCountSql, queryFields)
 
 	err = db.Get(&postList.Page.Count, postCountSql, queryFields.Pid, queryFields.Category,
 		queryFields.Tag, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
@@ -361,7 +361,7 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 	return
 }
 
-func dynamicConcatSql(sqlStr string, queryFields *queryfields.PostQueryFields) string {
+func dynamicConcatPostSql(sqlStr string, queryFields *queryfields.PostQueryFields) string {
 	if queryFields.IsDisplay == 0 {
 		sqlStr += ` pc.display = 0 `
 	} else if queryFields.IsDisplay == 1 {

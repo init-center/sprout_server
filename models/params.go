@@ -10,7 +10,6 @@ type ParamsSignUp struct {
 }
 
 type ParamsGetECode struct {
-	//Uid   string `json:"uid" binding:"required"`
 	Email string `json:"email" binding:"required,email"`
 	Type  int    `json:"type" binding:"required"`
 }
@@ -93,4 +92,14 @@ type ParamsUpdatePost struct {
 	IsCommentOpen *uint8   `json:"isCommentOpen" binding:"omitempty,oneof=0 1"`
 	IsTop         *uint8   `json:"isTop" binding:"omitempty,oneof=0 1"`
 	IsDelete      *uint8   `json:"isDelete" binding:"omitempty,oneof=0 1"`
+}
+
+type UriUpdateComment struct {
+	Cid uint64 `uri:"cid" binding:"required"`
+}
+
+type ParamsAdminUpdateComment struct {
+	IsDelete    *uint8  `json:"isDelete" binding:"omitempty,oneof=0 1"`
+	ReviewState *uint8  `json:"reviewStatus" binding:"omitempty,oneof=0 1 2"`
+	Content     *string `json:"content" binding:"omitempty,gte=2"`
 }
