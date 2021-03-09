@@ -2,14 +2,14 @@
 CREATE TABLE `t_user` (
     `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增id',
     `uid` varchar(20) NOT NULL COMMENT '用户id',
-    `gender` tinyint(1) UNSIGNED NOT NULL DEFAULT '0' COMMENT '性别',
+    `gender` tinyint(1) UNSIGNED NOT NULL DEFAULT '0' COMMENT '性别 0:男 1:女',
     `name` varchar(12) NOT NULL COMMENT '昵称',
     `email` varchar(64) COMMENT '邮箱',
     `tel` int(11)  COMMENT '电话号码',
     `password` varchar(64) NOT NULL COMMENT '密码',
     `birthday` date DEFAULT NULL COMMENT '生日',
     `avatar` varchar(2083) DEFAULT NULL COMMENT '头像地址',
-    `group` tinyint(3) UNSIGNED NOT NULL DEFAULT '2' COMMENT '用户组',
+    `group` tinyint(3) UNSIGNED NOT NULL DEFAULT '2' COMMENT '用户组 1：管理员 2：普通用户',
     `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `delete_time` timestamp NULL DEFAULT NULL COMMENT '注销时间',
@@ -116,3 +116,13 @@ CREATE TABLE `t_post_favorite` (
     KEY `idx_pid` (`pid`),
     KEY `idx_uid` (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='文章喜欢表';
+
+#用户封禁表
+CREATE TABLE `t_user_ban` (
+    `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增id',
+    `uid` varchar(20) NOT NULL COMMENT '用户id',
+    `start_time` timestamp NULL COMMENT '封禁开始时间',
+    `end_time` timestamp NULL COMMENT '封禁结束时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_uid` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户封禁表';

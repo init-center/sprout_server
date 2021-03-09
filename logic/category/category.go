@@ -5,6 +5,7 @@ import (
 	"sprout_server/common/response/code"
 	"sprout_server/dao/mysql"
 	"sprout_server/models"
+	"sprout_server/models/queryfields"
 
 	"go.uber.org/zap"
 )
@@ -31,16 +32,53 @@ func Create(p *models.ParamsAddCategory) int {
 
 }
 
-func GetAll() (models.Categories, int) {
-	categories, err := mysql.GetAllCategory()
+func Update(p *models.ParamsAddCategory, u *models.UriUpdateCategory) int {
+	// check the category exist
+	exist, err := mysql.CheckCategoryExistByName(p.Name)
+	if err != nil {
+		zap.L().Error("check category exist by name failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if exist {
+		return code.CodeCategoryExist
+	}
+
+	//category does not exist, can be update
+	if err := mysql.UpdateCategory(p.Name, u.Id); err != nil {
+		zap.L().Error("update category failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	return code.CodeOK
+
+}
+
+func Delete(u *models.UriDeleteCategory) int {
+	count, err := mysql.GetPostCountOfCategoryId(u.Id)
+	if err != nil {
+		zap.L().Error("get post count of category id failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if count > 0 {
+		return code.CodeCategoryHasPost
+	}
+
+	if err := mysql.DeleteCategory(u.Id); err != nil {
+		zap.L().Error("delete category failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	return code.CodeOK
+
+}
+
+func GetByQuery(p *queryfields.CategoryQueryFields) (models.CategoryList, int) {
+	categories, err := mysql.GetCategories(p)
 	if err != nil && err != sql.ErrNoRows {
 		zap.L().Error("get categories failed", zap.Error(err))
 		return categories, code.CodeServerBusy
-	}
-
-	// if get the empty slice, wanna an empty array but not a null in frontend
-	if len(categories) == 0 {
-		categories = make(models.Categories, 0, 0)
 	}
 
 	return categories, code.CodeOK

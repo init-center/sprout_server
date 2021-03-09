@@ -300,19 +300,25 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 
 	sqlStr = dynamicConcatPostSql(sqlStr, queryFields)
 
-	sqlStr += ` ORDER BY p.create_time DESC LIMIT ? OFFSET ?`
-
+	sqlStr += ` ORDER BY p.create_time DESC `
 	var limit = queryFields.Limit
+	if queryFields.Limit != 0 && queryFields.Page != 0 {
+		sqlStr += `LIMIT ? OFFSET ?`
+		err = db.Select(&postList.List, sqlStr, queryFields.Pid, queryFields.Category,
+			queryFields.Tag, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
+			queryFields.Keyword, queryFields.Keyword, limit, (queryFields.Page-1)*limit)
+	} else {
+		err = db.Select(&postList.List, sqlStr, queryFields.Pid, queryFields.Category,
+			queryFields.Tag, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
+			queryFields.Keyword, queryFields.Keyword)
+	}
 
-	err = db.Select(&postList.List, sqlStr, queryFields.Pid, queryFields.Category,
-		queryFields.Tag, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
-		queryFields.Keyword, queryFields.Keyword, queryFields.Limit, (queryFields.Page-1)*limit)
+	if err != nil {
+		return
+	}
 
 	if len(postList.List) == 0 {
 		postList.List = make([]models.PostItemByAdmin, 0, 0)
-		return
-	}
-	if err != nil {
 		return
 	}
 

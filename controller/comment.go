@@ -89,14 +89,14 @@ func (cc *CommentController) GetPostCommentList(c *gin.Context) {
 	response.SendWithData(c, statusCode, commentList)
 }
 
-func (cc *CommentController) GetAllPostComments(c *gin.Context) {
+func (cc *CommentController) GetPostComments(c *gin.Context) {
 	var p queryfields.CommentQueryFields
 	if err := c.ShouldBindQuery(&p); err != nil {
 		response.Send(c, code.CodeInvalidParams)
 		return
 	}
 
-	comments, statusCode := comment.GetAllPostComments(&p)
+	comments, statusCode := comment.GetPostComments(&p)
 
 	if statusCode != code.CodeOK {
 		response.Send(c, statusCode)

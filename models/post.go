@@ -33,17 +33,11 @@ type PostItemByAdmin struct {
 }
 
 type PostListByAdmin struct {
-	Page PostPage          `json:"page"`
+	Page Page              `json:"page"`
 	List []PostItemByAdmin `json:"list"`
 }
 
-type PostPage struct {
-	Count       uint64 `json:"count"`
-	CurrentPage uint64 `json:"currentPage"`
-	Size        uint64 `json:"size"`
-}
-
 type PostList struct {
-	Page PostPage       `json:"page"`
+	Page Page           `json:"page"`
 	List []PostListItem `json:"list"`
 }

@@ -1,10 +1,8 @@
 package mysql
 
 import (
-	"sprout_server/common/transaction"
 	"sprout_server/models"
-
-	"github.com/jmoiron/sqlx"
+	"sprout_server/models/queryfields"
 )
 
 func CreateTag(name string) (err error) {
@@ -13,17 +11,18 @@ func CreateTag(name string) (err error) {
 	return
 }
 
-func DeleteTagById(id uint64) (err error) {
-	txFunc := func(tx *sqlx.Tx) (err error) {
-		relationSqlStr := `DELETE FROM t_post_tag_relation WHERE tid = ?`
-		sqlStr := `DELETE FROM t_post_tag WHERE id = ?`
-		_, err = tx.Exec(relationSqlStr, id)
-		_, err = tx.Exec(sqlStr, id)
+func GetPostCountOfTagId(id uint64) (count uint64, err error) {
+	sql := `SELECT COUNT(id) FROM t_post_tag_relation WHERE tid = ?`
+	err = db.Get(&count, sql, id)
+	return
+}
+
+func DeleteTag(id uint64) (err error) {
+	sqlStr := `DELETE FROM t_post_tag WHERE id = ?`
+	_, err = db.Exec(sqlStr, id)
+	if err != nil {
 		return
 	}
-
-	err = transaction.Start(db, txFunc)
-
 	return
 }
 
@@ -45,11 +44,13 @@ func CheckTagExistById(id uint64) (bool, error) {
 	return count > 0, nil
 }
 
-func GetAllTags() (tags models.Tags, err error) {
-	sqlStr := `SELECT id,name FROM t_post_tag`
-	err = db.Select(&tags, sqlStr)
+func UpdateTag(name string, id uint64) (err error) {
+	sqlStr := `UPDATE t_post_tag SET name = ? WHERE id = ?`
+	_, err = db.Exec(sqlStr, name, id)
+	if err != nil {
+		return
+	}
 	return
-
 }
 
 func GetTagsByPid(pid uint64) (tags models.Tags, err error) {
@@ -58,8 +59,54 @@ func GetTagsByPid(pid uint64) (tags models.Tags, err error) {
 	return
 }
 
-func DisconnectPostTagRelation(pid uint64, tid uint64) (err error) {
-	deleteTagSqlStr := `DELETE FROM t_post_tag_relation WHERE pid = ? AND tid = ?`
-	_, err = db.Exec(deleteTagSqlStr, pid, tid)
+func GetTags(queryFields *queryfields.TagQueryFields) (tags models.TagList, err error) {
+	sqlStr := `SELECT id,name FROM t_post_tag `
+
+	sqlStr = dynamicConcatTagSql(sqlStr, queryFields)
+	sqlStr += ` ORDER BY id DESC `
+
+	var limit = queryFields.Limit
+	if queryFields.Page != 0 && queryFields.Limit != 0 {
+		sqlStr += `LIMIT ? OFFSET ? `
+		err = db.Select(&tags.List, sqlStr, queryFields.Id, queryFields.Keyword, limit, (queryFields.Page-1)*limit)
+	} else {
+		err = db.Select(&tags.List, sqlStr, queryFields.Id, queryFields.Keyword)
+	}
+
+	if err != nil {
+		return
+	}
+
+	if len(tags.List) == 0 {
+		tags.List = make([]models.TagData, 0, 0)
+	}
+
+	// get tag count
+	countSqlStr := ` SELECT COUNT(id) FROM t_post_tag`
+	countSqlStr = dynamicConcatTagSql(countSqlStr, queryFields)
+	err = db.Get(&tags.Page.Count, countSqlStr, queryFields.Id, queryFields.Keyword)
+	if err != nil {
+		return
+	}
+	tags.Page.CurrentPage = queryFields.Page
+	tags.Page.Size = queryFields.Limit
+
 	return
+
+}
+
+func dynamicConcatTagSql(sqlStr string, queryFields *queryfields.TagQueryFields) string {
+	if queryFields.Id != 0 {
+		sqlStr += ` WHERE id = ? `
+	} else {
+		sqlStr += ` WHERE ? = 0 `
+	}
+
+	if queryFields.Keyword != "" {
+		sqlStr += ` AND name LIKE CONCAT("%", ?, "%") `
+	} else {
+		sqlStr += ` AND LENGTH(?) = 0 `
+	}
+
+	return sqlStr
 }

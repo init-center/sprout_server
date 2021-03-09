@@ -23,9 +23,21 @@ type ParamsAddCategory struct {
 	Name string `json:"name" binding:"required,min=1,max=64"`
 }
 
+type UriUpdateCategory struct {
+	Id uint64 `uri:"id" binding:"required"`
+}
+
+type UriDeleteCategory = UriUpdateCategory
+
 type ParamsAddTag struct {
 	Name string `json:"name" binding:"required,min=1,max=64"`
 }
+
+type UriUpdateTag struct {
+	Id uint64 `uri:"id" binding:"required"`
+}
+
+type UriDeleteTag = UriUpdateTag
 
 type ParamsAddPost struct {
 	Category      uint64   `json:"category" binding:"required"`
@@ -102,4 +114,25 @@ type ParamsAdminUpdateComment struct {
 	IsDelete    *uint8  `json:"isDelete" binding:"omitempty,oneof=0 1"`
 	ReviewState *uint8  `json:"reviewStatus" binding:"omitempty,oneof=0 1 2"`
 	Content     *string `json:"content" binding:"omitempty,gte=2"`
+}
+
+type UriUpdateUser struct {
+	Uid string `uri:"uid" binding:"required"`
+}
+
+type ParamsAdminUpdateUser struct {
+	Name     *string `json:"name" binding:"omitempty,ne=admin,checkName"`
+	Avatar   *string `json:"avatar" binding:"omitempty,url"`
+	Password *string `json:"password" binding:"omitempty,min=6,max=16,checkPwd"`
+	Email    *string `json:"email" binding:"omitempty,email"`
+	Gender   *uint8  `json:"gender" binding:"omitempty,oneof=0 1"`
+	Tel      *string `json:"tel" binding:"omitempty,checkTel"`
+	Birthday *string `json:"birthday" binding:"omitempty,datetime=2006-01-02"`
+	Group    *uint8  `json:"group" binding:"omitempty,oneof=1 2"`
+	IsDelete *uint8  `json:"isDelete" binding:"omitempty,oneof=0 1"`
+}
+
+type ParamsBanUser struct {
+	BanStartTime string `json:"banStartTime" binding:"datetime=2006-01-02 15:04:05"`
+	BanEndTime   string `json:"banEndTime" binding:"datetime=2006-01-02 15:04:05"`
 }

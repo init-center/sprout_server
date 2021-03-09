@@ -28,6 +28,9 @@ const (
 	CodeAlreadyFavorited
 	CodeNotFavorited
 	CodeCantTopDeletePost
+	CodeUserIsNotBaned
+	CodeCategoryHasPost
+	CodeTagHasPost
 )
 
 var MessageMap = map[int]string{
@@ -57,6 +60,9 @@ var MessageMap = map[int]string{
 	CodeAlreadyFavorited:     "已经喜欢",
 	CodeNotFavorited:         "还未喜欢",
 	CodeCantTopDeletePost:    "不能置顶删除的文章",
+	CodeUserIsNotBaned:       "用户未被封禁",
+	CodeCategoryHasPost:      "分类下存在文章",
+	CodeTagHasPost:           "标签下存在文章",
 }
 
 // Error code mapping HTTP status code
@@ -87,6 +93,9 @@ var HCodeMap = map[int]int{
 	CodeAlreadyFavorited:     http.StatusNoContent,
 	CodeNotFavorited:         http.StatusNotFound,
 	CodeCantTopDeletePost:    http.StatusConflict,
+	CodeUserIsNotBaned:       http.StatusConflict,
+	CodeCategoryHasPost:      http.StatusConflict,
+	CodeTagHasPost:           http.StatusConflict,
 }
 
 func Msg(code int) string {

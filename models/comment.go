@@ -29,29 +29,23 @@ type CommentItemByAdmin struct {
 	ReviewStatus uint8  `db:"review_status" json:"reviewStatus"`
 }
 
-type CommentPage struct {
-	Count       uint64 `json:"count"`
-	CurrentPage uint64 `json:"currentPage"`
-	Size        uint64 `json:"size"`
-}
-
 type Comment struct {
 	*BaseCommentItem
-	Page     CommentPage   `json:"page"`
+	Page     Page          `json:"page"`
 	Children []CommentItem `json:"children"`
 }
 
 type CommentList struct {
-	Page CommentPage `json:"page"`
-	List []Comment   `json:"list"`
+	Page Page      `json:"page"`
+	List []Comment `json:"list"`
 }
 
 type CommentItemListByAdmin struct {
 	List []CommentItemByAdmin `json:"list"`
-	Page CommentPage          `json:"page"`
+	Page Page                 `json:"page"`
 }
 
 type ParentCommentChildren struct {
-	Page CommentPage   `json:"page"`
+	Page Page          `json:"page"`
 	List []CommentItem `json:"list"`
 }

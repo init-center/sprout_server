@@ -11,6 +11,6 @@ type PostQueryFields struct {
 	CreateTimeStart string `form:"createTimeStart"`
 	CreateTimeEnd   string `form:"createTimeEnd"`
 	IsCommentOpen   uint8  `form:"isCommentOpen,default=2"`
-	Page            uint64 `form:"page" binding:"gte=1"`
-	Limit           uint64 `form:"limit" binding:"gte=1"`
+	Page            uint64 `form:"page" binding:"omitempty,gte=1"`
+	Limit           uint64 `form:"limit" binding:"omitempty,gte=1"`
 }

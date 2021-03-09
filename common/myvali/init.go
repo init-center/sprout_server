@@ -22,6 +22,11 @@ func Init() error {
 			zap.L().Error("register name validator failed", zap.Error(err))
 			return err
 		}
+
+		if err := v.RegisterValidation("checkTel", checkTel); err != nil {
+			zap.L().Error("tel validator failed", zap.Error(err))
+			return err
+		}
 	}
 	return nil
 }

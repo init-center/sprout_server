@@ -255,7 +255,7 @@ func GetPostParentCommentChildren(p *models.ParamsGetParentCommentChildren) (par
 	return
 }
 
-func GetAllPostComments(queryFields *queryfields.CommentQueryFields) (comments models.CommentItemListByAdmin, err error) {
+func GetPostComments(queryFields *queryfields.CommentQueryFields) (comments models.CommentItemListByAdmin, err error) {
 	sqlStr := `
 	SELECT 
 	pc.cid,
@@ -281,19 +281,25 @@ func GetAllPostComments(queryFields *queryfields.CommentQueryFields) (comments m
 	WHERE `
 
 	sqlStr = dynamicConcatCommentSql(sqlStr, queryFields)
-	sqlStr += `ORDER BY pc.create_time DESC LIMIT ? OFFSET ?`
+	sqlStr += `ORDER BY pc.create_time DESC `
 
 	var limit = queryFields.Limit
 
-	err = db.Select(&comments.List, sqlStr, queryFields.Uid, queryFields.Pid,
-		queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
-		queryFields.Limit, (queryFields.Page-1)*limit)
+	if queryFields.Limit != 0 && queryFields.Page != 0 {
+		sqlStr += `LIMIT ? OFFSET ?`
+		err = db.Select(&comments.List, sqlStr, queryFields.Uid, queryFields.Pid,
+			queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
+			limit, (queryFields.Page-1)*limit)
+	} else {
+		err = db.Select(&comments.List, sqlStr, queryFields.Uid, queryFields.Pid,
+			queryFields.CreateTimeStart, queryFields.CreateTimeEnd)
+	}
+	if err != nil {
+		return
+	}
 
 	if len(comments.List) == 0 {
 		comments.List = make([]models.CommentItemByAdmin, 0, 0)
-		return
-	}
-	if err != nil {
 		return
 	}
 

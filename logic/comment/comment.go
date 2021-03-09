@@ -74,10 +74,10 @@ func GetPostCommentList(p *models.ParamsGetCommentList) (models.CommentList, int
 	return commentList, code.CodeOK
 }
 
-func GetAllPostComments(p *queryfields.CommentQueryFields) (models.CommentItemListByAdmin, int) {
-	comments, err := mysql.GetAllPostComments(p)
+func GetPostComments(p *queryfields.CommentQueryFields) (models.CommentItemListByAdmin, int) {
+	comments, err := mysql.GetPostComments(p)
 	if err != nil && err != sql.ErrNoRows {
-		zap.L().Error("get all post commentLs failed", zap.Error(err))
+		zap.L().Error("get post comments failed", zap.Error(err))
 		return comments, code.CodeServerBusy
 	}
 

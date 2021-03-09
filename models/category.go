@@ -5,4 +5,7 @@ type CategoryData struct {
 	Name string `db:"name" json:"name"`
 }
 
-type Categories []CategoryData
+type CategoryList struct {
+	Page Page           `json:"page"`
+	List []CategoryData `json:"list"`
+}

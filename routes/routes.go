@@ -54,14 +54,18 @@ func Setup() (*gin.Engine, error) {
 	{
 		categoryController := &controller.CategoryController{}
 		category.POST("", middlewares.JwtAuth(), middlewares.AdminAuth(), categoryController.Create)
-		category.GET("", categoryController.GetAll)
+		category.PUT("/:id", middlewares.JwtAuth(), middlewares.AdminAuth(), categoryController.Update)
+		category.DELETE("/:id", middlewares.JwtAuth(), middlewares.AdminAuth(), categoryController.Delete)
+		category.GET("", categoryController.GetByQuery)
 	}
 
 	tag := r.Group("/tags")
 	{
 		tagController := &controller.TagController{}
 		tag.POST("", middlewares.JwtAuth(), middlewares.AdminAuth(), tagController.Create)
-		tag.GET("", tagController.GetAll)
+		tag.PUT("/:id", middlewares.JwtAuth(), middlewares.AdminAuth(), tagController.Update)
+		tag.DELETE("/:id", middlewares.JwtAuth(), middlewares.AdminAuth(), tagController.Delete)
+		tag.GET("", tagController.GetByQuery)
 	}
 
 	post := r.Group("/posts")
@@ -92,8 +96,17 @@ func Setup() (*gin.Engine, error) {
 		adminComment := admin.Group("/comments")
 		{
 			adminCommentController := &controller.CommentController{}
-			adminComment.GET("/posts", adminCommentController.GetAllPostComments)
+			adminComment.GET("/posts", adminCommentController.GetPostComments)
 			adminComment.PUT("/:cid", adminCommentController.AdminUpdatePostComment)
+		}
+
+		adminUser := admin.Group("/users")
+		{
+			adminUserController := &controller.UserController{}
+			adminUser.GET("", adminUserController.AdminGetUsers)
+			adminUser.PUT("/:uid", adminUserController.AdminUpdateUser)
+			adminUser.POST("/:uid/ban", adminUserController.BanUser)
+			adminUser.DELETE("/:uid/ban", adminUserController.UnblockUser)
 		}
 	}
 
