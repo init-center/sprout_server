@@ -108,6 +108,17 @@ func Setup() (*gin.Engine, error) {
 			adminUser.POST("/:uid/ban", adminUserController.BanUser)
 			adminUser.DELETE("/:uid/ban", adminUserController.UnblockUser)
 		}
+
+		adminAnalysis := admin.Group("/analysis")
+		{
+			adminAnalysisController := &controller.AnalysisController{}
+			adminAnalysis.GET("/users", adminAnalysisController.GetUserAnalysis)
+			adminAnalysis.GET("/comments", adminAnalysisController.GetCommentAnalysis)
+			adminAnalysis.GET("/posts", adminAnalysisController.GetPostAnalysis)
+			adminAnalysis.GET("/posts/viewsrank", adminAnalysisController.GetPostViewsRank)
+			adminAnalysis.GET("/categories/postscount", adminAnalysisController.GetCategoriesPostsCount)
+			adminAnalysis.GET("/tags/postscount", adminAnalysisController.GetTagsPostsCount)
+		}
 	}
 
 	comment := r.Group("/comments")

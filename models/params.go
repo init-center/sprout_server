@@ -136,3 +136,11 @@ type ParamsBanUser struct {
 	BanStartTime string `json:"banStartTime" binding:"datetime=2006-01-02 15:04:05"`
 	BanEndTime   string `json:"banEndTime" binding:"datetime=2006-01-02 15:04:05"`
 }
+
+type ParamsRecentDaysAnalysis struct {
+	Days uint8 `json:"days" binding:"max=30"`
+}
+
+type ParamsGetViewsRank struct {
+	Limit uint8 `form:"limit,default=7"`
+}
