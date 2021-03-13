@@ -24,7 +24,7 @@ func Setup() (*gin.Engine, error) {
 		ExposeHeaders:    []string{"Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
-	}))
+	}), middlewares.ParseOrigin())
 
 	// register the routes
 
@@ -137,6 +137,13 @@ func Setup() (*gin.Engine, error) {
 		favorite.GET("/posts/:pid", middlewares.JwtAuth(), favoriteController.CheckUserFavoritePost)
 		favorite.POST("/posts/:pid", middlewares.JwtAuth(), favoriteController.AddUserFavoritePost)
 		favorite.DELETE("/posts/:pid", middlewares.JwtAuth(), favoriteController.DeleteUserFavoritePost)
+	}
+
+	pageViews := r.Group("/views")
+	{
+		pageViewsController := &controller.PageViewsController{}
+		pageViews.POST("", pageViewsController.CreatePageViews)
+		pageViews.GET("", pageViewsController.GetPageViews)
 	}
 
 	return r, nil

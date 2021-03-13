@@ -608,6 +608,12 @@ func GetPostDetail(p *models.UriGetPostDetail) (post models.PostDetail, err erro
 		return
 	}
 
+	// add post view
+	_, err = db.Exec(`UPDATE t_post_views SET views = views + 1 WHERE pid = ?`, p.Pid)
+	if err != nil {
+		return
+	}
+
 	return
 }
 

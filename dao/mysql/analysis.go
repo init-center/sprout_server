@@ -55,7 +55,7 @@ func GetPostAnalysis() (postAnalysis models.PostAnalysisData, err error) {
 		return
 	}
 
-	err = db.Get(&postAnalysis.MonthIncrease, `SELECT COUNT(id) FROM t_post WHERE MONTH(create_time) = MONTH(NOW())`)
+	err = db.Get(&postAnalysis.MonthIncrease, `SELECT COUNT(id) FROM t_post WHERE YEAR(create_time) = YEAR(create_time) AND MONTH(create_time) = MONTH(NOW())`)
 	return
 }
 

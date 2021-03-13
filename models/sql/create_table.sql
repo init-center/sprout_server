@@ -126,3 +126,21 @@ CREATE TABLE `t_user_ban` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `idx_uid` (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户封禁表';
+
+#浏览记录表
+CREATE TABLE `t_page_views` (
+    `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增id',
+    `uid` varchar(20) COMMENT '用户id',
+    `ip` varchar(128) NOT NULL COMMENT '用户ip',
+    `os` varchar(128) COMMENT '系统',
+    `browser` varchar(128) COMMENT '浏览器',
+    `engine` varchar(128) COMMENT '浏览器引擎',
+    `user_agent` varchar(512) COMMENT '用户代理',
+    `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_uid` (`uid`),
+    KEY `idx_ip` (`ip`),
+    KEY `idx_os` (`os`),
+    KEY `idx_browser` (`browser`),
+    KEY `idx_engine` (`engine`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='浏览记录表';

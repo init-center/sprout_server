@@ -10,7 +10,14 @@ const (
 	TokenExpireDuration = time.Hour * 24
 )
 
-const CtxUidKey = "uid"
+const (
+	CtxUidKey           = "uid"
+	CtxOriginEngineKey  = "engine"
+	CtxOriginOsKey      = "origin-os"
+	CtxOriginBrowserKey = "origin-browser"
+	CtxOriginUAKey      = "origin-user-agent"
+	CtxOriginIpKey      = "origin-ip"
+)
 
 // user group constant
 const (
