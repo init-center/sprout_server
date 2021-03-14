@@ -5,6 +5,15 @@ type RecentIncrease struct {
 	Increase uint64 `json:"increase" db:"increase"`
 }
 
+type MonthComplexIncrease struct {
+	Month    string `json:"月份" db:"month"`
+	Views    string `json:"访问量" db:"views"`
+	Comments string `json:"评论量" db:"comments"`
+	Users    string `json:"用户量" db:"users"`
+}
+
+type MonthComplexIncreaseList = []MonthComplexIncrease
+
 type BaseAnalysisData struct {
 	Total              uint64           `json:"total" db:"total"`
 	RecentIncreaseList []RecentIncrease `json:"recentIncreaseList"`

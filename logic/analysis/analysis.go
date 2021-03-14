@@ -31,6 +31,28 @@ func GetCommentAnalysis(days uint8) (models.BaseAnalysisData, int) {
 	return commentAnalysis, code.CodeOK
 }
 
+func GetComplexAnalysis(months uint8) (models.MonthComplexIncreaseList, int) {
+
+	complexAnalysis, err := mysql.GetComplexAnalysis(months)
+	if err != nil && err != sql.ErrNoRows {
+		zap.L().Error("get complex Analysis failed", zap.Error(err))
+		return complexAnalysis, code.CodeServerBusy
+	}
+
+	return complexAnalysis, code.CodeOK
+}
+
+func GetViewsAnalysis(days uint8) (models.BaseAnalysisData, int) {
+
+	viewsAnalysis, err := mysql.GetViewsAnalysis(days)
+	if err != nil && err != sql.ErrNoRows {
+		zap.L().Error("get viewsAnalysis failed", zap.Error(err))
+		return viewsAnalysis, code.CodeServerBusy
+	}
+
+	return viewsAnalysis, code.CodeOK
+}
+
 func GetPostAnalysis() (models.PostAnalysisData, int) {
 
 	postAnalysis, err := mysql.GetPostAnalysis()

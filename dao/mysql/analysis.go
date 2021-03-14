@@ -41,6 +41,41 @@ func GetCommentAnalysis(days uint8) (commentAnalysis models.BaseAnalysisData, er
 	return
 }
 
+func GetComplexAnalysis(months uint8) (complexAnalysis models.MonthComplexIncreaseList, err error) {
+
+	sql := `SELECT a.month,IFNULL(b.count,0) AS comments, IFNULL(c.count,0) AS users, IFNULL(d.count,0) AS views from (`
+	for i := 0; i < int(months); i++ {
+		if i != 0 {
+			sql += ` UNION ALL `
+		}
+		sql += fmt.Sprint(`SELECT DATE_FORMAT((CURDATE() - INTERVAL `, i, ` MONTH), '%Y-%m')`, ` AS month `)
+	}
+	sql += `) a LEFT JOIN (SELECT DATE_FORMAT(create_time, '%Y-%m') AS month, COUNT(*) AS count FROM t_post_comment GROUP BY month) b 
+			ON a.month = b.month LEFT JOIN (SELECT DATE_FORMAT(create_time, '%Y-%m') AS month, COUNT(*) AS count FROM t_user GROUP BY month) c ON a.month = c.month 
+			LEFT JOIN (SELECT DATE_FORMAT(create_time, '%Y-%m') AS month, COUNT(*) AS count FROM t_page_views GROUP BY month) d ON a.month = d.month ORDER BY a.month;`
+
+	err = db.Select(&complexAnalysis, sql)
+	return
+}
+
+func GetViewsAnalysis(days uint8) (viewsAnalysis models.BaseAnalysisData, err error) {
+	totalSql := `SELECT COUNT(id) FROM t_page_views`
+	err = db.Get(&viewsAnalysis.Total, totalSql)
+	if err != nil {
+		return
+	}
+
+	recentIncreaseListSql := createRecentDaysIncreaseSql(days, "t_page_views")
+
+	err = db.Select(&viewsAnalysis.RecentIncreaseList, recentIncreaseListSql)
+	if err != nil {
+		return
+	}
+
+	err = db.Get(&viewsAnalysis.TodayIncrease, `SELECT COUNT(id) AS today_increase FROM t_page_views WHERE DATE(create_time) = CURDATE()`)
+	return
+}
+
 func GetPostAnalysis() (postAnalysis models.PostAnalysisData, err error) {
 	totalSql := `SELECT COUNT(id) FROM t_post`
 	err = db.Get(&postAnalysis.Total, totalSql)

@@ -114,7 +114,9 @@ func Setup() (*gin.Engine, error) {
 			adminAnalysisController := &controller.AnalysisController{}
 			adminAnalysis.GET("/users", adminAnalysisController.GetUserAnalysis)
 			adminAnalysis.GET("/comments", adminAnalysisController.GetCommentAnalysis)
+			adminAnalysis.GET("/views", adminAnalysisController.GetViewsAnalysis)
 			adminAnalysis.GET("/posts", adminAnalysisController.GetPostAnalysis)
+			adminAnalysis.GET("/complex", adminAnalysisController.GetComplexAnalysis)
 			adminAnalysis.GET("/posts/viewsrank", adminAnalysisController.GetPostViewsRank)
 			adminAnalysis.GET("/categories/postscount", adminAnalysisController.GetCategoriesPostsCount)
 			adminAnalysis.GET("/tags/postscount", adminAnalysisController.GetTagsPostsCount)

@@ -51,6 +51,46 @@ func (ac *AnalysisController) GetCommentAnalysis(c *gin.Context) {
 	response.SendWithData(c, statusCode, commentAnalysis)
 }
 
+func (ac *AnalysisController) GetViewsAnalysis(c *gin.Context) {
+	var p models.ParamsRecentDaysAnalysis
+	if err := c.ShouldBindQuery(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+
+	if p.Days == 0 {
+		p.Days = 7
+	}
+	viewsAnalysis, statusCode := analysis.GetViewsAnalysis(p.Days)
+
+	if statusCode != code.CodeOK {
+		response.Send(c, statusCode)
+		return
+	}
+
+	response.SendWithData(c, statusCode, viewsAnalysis)
+}
+
+func (ac *AnalysisController) GetComplexAnalysis(c *gin.Context) {
+	var p models.ParamsRecentMonthsAnalysis
+	if err := c.ShouldBindQuery(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+
+	if p.Months == 0 {
+		p.Months = 5
+	}
+	complexAnalysis, statusCode := analysis.GetComplexAnalysis(p.Months)
+
+	if statusCode != code.CodeOK {
+		response.Send(c, statusCode)
+		return
+	}
+
+	response.SendWithData(c, statusCode, complexAnalysis)
+}
+
 func (ac *AnalysisController) GetPostAnalysis(c *gin.Context) {
 	postAnalysis, statusCode := analysis.GetPostAnalysis()
 

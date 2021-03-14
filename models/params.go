@@ -141,6 +141,10 @@ type ParamsRecentDaysAnalysis struct {
 	Days uint8 `json:"days" binding:"max=30"`
 }
 
+type ParamsRecentMonthsAnalysis struct {
+	Months uint8 `json:"months" binding:"max=12"`
+}
+
 type ParamsGetViewsRank struct {
 	Limit uint8 `form:"limit,default=7"`
 }
