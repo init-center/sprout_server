@@ -279,7 +279,7 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 	p.content, 
     p.category, 
 	p.bgm, 
-	c.name,
+	c.name AS category_name,
     p.create_time, 
 	p.update_time,
 	p.delete_time,
@@ -293,23 +293,25 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 	LEFT JOIN t_post_views pv 
 	ON pc.pid = pv.pid 
 	LEFT JOIN t_post_category c 
-	ON p.category = c.id 
-	LEFT JOIN t_post_tag_relation ptr 
-	ON p.pid = ptr.pid 
-	WHERE `
+	ON p.category = c.id `
+
+	if queryFields.Tag != 0 || queryFields.TagName != "" {
+		sqlStr += `LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
+	}
+	sqlStr += ` WHERE `
 
 	sqlStr = dynamicConcatPostSql(sqlStr, queryFields)
 
 	sqlStr += ` ORDER BY p.create_time DESC `
 	var limit = queryFields.Limit
 	if queryFields.Limit != 0 && queryFields.Page != 0 {
-		sqlStr += `LIMIT ? OFFSET ?`
+		sqlStr += ` LIMIT ? OFFSET ?`
 		err = db.Select(&postList.List, sqlStr, queryFields.Pid, queryFields.Category,
-			queryFields.Tag, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
+			queryFields.Tag, queryFields.CategoryName, queryFields.TagName, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
 			queryFields.Keyword, queryFields.Keyword, limit, (queryFields.Page-1)*limit)
 	} else {
 		err = db.Select(&postList.List, sqlStr, queryFields.Pid, queryFields.Category,
-			queryFields.Tag, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
+			queryFields.Tag, queryFields.CategoryName, queryFields.TagName, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
 			queryFields.Keyword, queryFields.Keyword)
 	}
 
@@ -329,15 +331,17 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 	LEFT JOIN t_post_config pc 
 	ON p.pid = pc.pid 
 	LEFT JOIN t_post_category c 
-	ON p.category = c.id 
-	LEFT JOIN t_post_tag_relation ptr 
-	ON p.pid = ptr.pid
-	WHERE `
+	ON p.category = c.id `
+
+	if queryFields.Tag != 0 || queryFields.TagName != "" {
+		postCountSql += `LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
+	}
+	postCountSql += ` WHERE `
 
 	postCountSql = dynamicConcatPostSql(postCountSql, queryFields)
 
 	err = db.Get(&postList.Page.Count, postCountSql, queryFields.Pid, queryFields.Category,
-		queryFields.Tag, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
+		queryFields.Tag, queryFields.CategoryName, queryFields.TagName, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
 		queryFields.Keyword, queryFields.Keyword)
 	if err != nil {
 		return
@@ -363,6 +367,8 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 			return
 		}
 	}
+
+	postList.Search = *queryFields
 
 	return
 }
@@ -413,6 +419,18 @@ func dynamicConcatPostSql(sqlStr string, queryFields *queryfields.PostQueryField
 		sqlStr += ` AND 0 = ? `
 	}
 
+	if queryFields.CategoryName != "" {
+		sqlStr += ` AND c.name = ? `
+	} else {
+		sqlStr += ` AND LENGTH(?) = 0 `
+	}
+
+	if queryFields.TagName != "" {
+		sqlStr += ` AND pt.name = ? `
+	} else {
+		sqlStr += ` AND LENGTH(?) = 0 `
+	}
+
 	if queryFields.CreateTimeStart != "" && queryFields.CreateTimeEnd != "" {
 		sqlStr += ` AND (p.create_time >= ? AND p.create_time <= ?) `
 	} else {
@@ -428,7 +446,7 @@ func dynamicConcatPostSql(sqlStr string, queryFields *queryfields.PostQueryField
 	return sqlStr
 }
 
-func GetTopPost() (topPost models.PostListItem, err error) {
+func GetTopPost(qs *models.QueryStringGetPostList) (topPost models.PostListItem, err error) {
 	sqlStr := `
 	SELECT 
     p.pid, 
@@ -437,7 +455,7 @@ func GetTopPost() (topPost models.PostListItem, err error) {
     p.title, 
     p.summary, 
     p.category, 
-	c.name,
+	c.name AS category_name,
     p.create_time, 
     pc.top_time,
 	pv.views 
@@ -447,13 +465,19 @@ func GetTopPost() (topPost models.PostListItem, err error) {
 	LEFT JOIN t_post_views pv 
 	ON pc.pid = pv.pid 
 	LEFT JOIN t_post_category c 
-	ON p.category = c.id 
-	WHERE pc.display = 1 
+	ON p.category = c.id `
+	if qs.Tag != 0 || qs.TagName != "" {
+		sqlStr += ` LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
+	}
+	sqlStr += `WHERE pc.display = 1 
 	AND p.delete_time IS NULL 
-	AND pc.top_time IS NOT NULL 
-	LIMIT 1`
+	AND pc.top_time IS NOT NULL `
 
-	err = db.Get(&topPost, sqlStr)
+	sqlStr = concatPostListSql(sqlStr, qs)
+
+	sqlStr += `LIMIT 1`
+
+	err = db.Get(&topPost, sqlStr, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword)
 	if err != nil {
 		return
 	}
@@ -473,13 +497,13 @@ func GetTopPost() (topPost models.PostListItem, err error) {
 func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, err error) {
 	sqlStr := `
 	SELECT 
-    p.pid, 
+    DISTINCT p.pid, 
     p.uid, 
     p.cover, 
     p.title, 
     p.summary, 
     p.category, 
-	c.name,
+	c.name AS category_name,
     p.create_time, 
     pc.top_time,
 	pv.views 
@@ -489,20 +513,24 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 	LEFT JOIN t_post_views pv 
 	ON pc.pid = pv.pid 
 	LEFT JOIN t_post_category c 
-	ON p.category = c.id 
-	WHERE pc.display = 1 
-	AND p.delete_time IS NULL 
-	AND pc.top_time IS NULL 
-	ORDER BY p.create_time DESC 
-	LIMIT ? 
-	OFFSET ?`
+	ON p.category = c.id `
+
+	if qs.Tag != 0 || qs.TagName != "" {
+		sqlStr += `LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
+	}
+
+	sqlStr += ` WHERE pc.display = 1 AND p.delete_time IS NULL AND pc.top_time IS NULL `
+
+	sqlStr = concatPostListSql(sqlStr, qs)
+
+	sqlStr += ` ORDER BY p.create_time DESC `
 
 	var limit = qs.Limit
 
 	if qs.Page == 1 {
-		// if the page is 1, get the top post
+		// if the page is 1 , get the top post
 		var topPost models.PostListItem
-		topPost, err = GetTopPost()
+		topPost, err = GetTopPost(qs)
 		if err != nil && err != sql.ErrNoRows {
 			return
 		}
@@ -511,25 +539,41 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 		}
 	}
 
-	err = db.Select(&postList.List, sqlStr, qs.Limit, (qs.Page-1)*limit)
-	if len(postList.List) == 0 {
-		postList.List = make([]models.PostListItem, 0, 0)
+	if qs.Limit != 0 && qs.Page != 0 {
+		sqlStr += ` LIMIT ? OFFSET ?`
+		err = db.Select(&postList.List, sqlStr, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword, limit, (qs.Page-1)*limit)
+	} else {
+		err = db.Select(&postList.List, sqlStr, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword)
+	}
+
+	if err != nil {
 		return
 	}
-	if err != nil {
+	if len(postList.List) == 0 {
+		postList.List = make([]models.PostListItem, 0, 0)
 		return
 	}
 
 	// get post count
 	postCountSql := `
-	SELECT COUNT(p.id) 
+	SELECT COUNT(DISTINCT p.id) 
 	FROM t_post p 
 	LEFT JOIN t_post_config pc 
 	ON p.pid = pc.pid 
-	WHERE pc.display = 1 
-	AND p.delete_time IS NULL`
+	LEFT JOIN t_post_views pv 
+	ON pc.pid = pv.pid 
+	LEFT JOIN t_post_category c 
+	ON p.category = c.id `
 
-	err = db.Get(&postList.Page.Count, postCountSql)
+	if qs.Tag != 0 || qs.TagName != "" {
+		postCountSql += `LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
+	}
+
+	postCountSql += ` WHERE pc.display = 1 AND p.delete_time IS NULL `
+
+	postCountSql = concatPostListSql(postCountSql, qs)
+
+	err = db.Get(&postList.Page.Count, postCountSql, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword)
 	if err != nil {
 		return
 	}
@@ -554,7 +598,43 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 		}
 	}
 
+	postList.Search = *qs
+
 	return
+}
+
+func concatPostListSql(sqlStr string, qs *models.QueryStringGetPostList) string {
+
+	if qs.Category != 0 {
+		sqlStr += ` AND p.category = ? `
+	} else {
+		sqlStr += ` AND 0 = ? `
+	}
+
+	if qs.Tag != 0 {
+		sqlStr += ` AND ptr.tid = ? `
+	} else {
+		sqlStr += ` AND 0 = ? `
+	}
+
+	if qs.CategoryName != "" {
+		sqlStr += ` AND c.name = ? `
+	} else {
+		sqlStr += ` AND LENGTH(?) = 0 `
+	}
+
+	if qs.TagName != "" {
+		sqlStr += ` AND pt.name = ? `
+	} else {
+		sqlStr += ` AND LENGTH(?) = 0 `
+	}
+
+	if qs.Keyword != "" {
+		sqlStr += ` AND (p.content LIKE CONCAT("%", ?, "%") OR p.title LIKE CONCAT("%", ?, "%")) `
+	} else {
+		sqlStr += ` AND LENGTH(?) = 0 AND LENGTH(?) = 0 `
+	}
+	return sqlStr
 }
 
 func GetPostDetail(p *models.UriGetPostDetail) (post models.PostDetail, err error) {
@@ -571,7 +651,7 @@ func GetPostDetail(p *models.UriGetPostDetail) (post models.PostDetail, err erro
 	pc.comment_open,
 	p.update_time,
     p.category, 
-	c.name,
+	c.name AS category_name,
 	pv.views,
     p.create_time, 
     pc.top_time, 
@@ -631,7 +711,7 @@ func GetPostDetailByAdmin(p *models.UriGetPostDetail) (post models.PostItemByAdm
 	pc.comment_open,
 	p.update_time,
     p.category, 
-	c.name,
+	c.name AS category_name,
 	pv.views,
     p.create_time, 
     pc.top_time, 

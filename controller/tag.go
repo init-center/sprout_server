@@ -68,12 +68,12 @@ func (t *TagController) GetByQuery(c *gin.Context) {
 		response.Send(c, code.CodeInvalidParams)
 		return
 	}
-	categories, statusCode := tag.GetByQuery(&p)
+	tags, statusCode := tag.GetByQuery(&p)
 
 	if statusCode != code.CodeOK {
 		response.Send(c, statusCode)
 		return
 	}
 
-	response.SendWithData(c, statusCode, categories)
+	response.SendWithData(c, statusCode, tags)
 }

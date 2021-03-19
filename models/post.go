@@ -1,12 +1,15 @@
 package models
 
-import "time"
+import (
+	"sprout_server/models/queryfields"
+	"time"
+)
 
 type PostListItem struct {
 	Uid          string     `json:"uid" db:"uid"`
 	Pid          uint64     `json:"pid,string" db:"pid"`
 	CategoryId   uint64     `json:"categoryId" db:"category"`
-	CategoryName string     `json:"categoryName" db:"name"`
+	CategoryName string     `json:"categoryName" db:"category_name"`
 	Tags         Tags       `json:"tags" db:"tags"`
 	Title        string     `json:"title" db:"title"`
 	Cover        string     `json:"cover" db:"cover"`
@@ -33,11 +36,13 @@ type PostItemByAdmin struct {
 }
 
 type PostListByAdmin struct {
-	Page Page              `json:"page"`
-	List []PostItemByAdmin `json:"list"`
+	Page   Page                        `json:"page"`
+	List   []PostItemByAdmin           `json:"list"`
+	Search queryfields.PostQueryFields `json:"search"`
 }
 
 type PostList struct {
-	Page Page           `json:"page"`
-	List []PostListItem `json:"list"`
+	Page   Page                   `json:"page"`
+	List   []PostListItem         `json:"list"`
+	Search QueryStringGetPostList `json:"search"`
 }

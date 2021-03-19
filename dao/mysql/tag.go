@@ -60,10 +60,10 @@ func GetTagsByPid(pid uint64) (tags models.Tags, err error) {
 }
 
 func GetTags(queryFields *queryfields.TagQueryFields) (tags models.TagList, err error) {
-	sqlStr := `SELECT id,name FROM t_post_tag `
+	sqlStr := `SELECT t.id, t.name, COUNT(ptr.id) AS post_count FROM t_post_tag t LEFT JOIN t_post_tag_relation ptr ON t.id = ptr.tid `
 
 	sqlStr = dynamicConcatTagSql(sqlStr, queryFields)
-	sqlStr += ` ORDER BY id DESC `
+	sqlStr += ` GROUP BY t.id ORDER BY t.id, post_count DESC `
 
 	var limit = queryFields.Limit
 	if queryFields.Page != 0 && queryFields.Limit != 0 {
@@ -97,13 +97,13 @@ func GetTags(queryFields *queryfields.TagQueryFields) (tags models.TagList, err 
 
 func dynamicConcatTagSql(sqlStr string, queryFields *queryfields.TagQueryFields) string {
 	if queryFields.Id != 0 {
-		sqlStr += ` WHERE id = ? `
+		sqlStr += ` WHERE t.id = ? `
 	} else {
 		sqlStr += ` WHERE ? = 0 `
 	}
 
 	if queryFields.Keyword != "" {
-		sqlStr += ` AND name LIKE CONCAT("%", ?, "%") `
+		sqlStr += ` AND t.name LIKE CONCAT("%", ?, "%") `
 	} else {
 		sqlStr += ` AND LENGTH(?) = 0 `
 	}

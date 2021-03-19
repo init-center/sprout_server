@@ -136,7 +136,15 @@ func GetDetail(p *models.UriGetPostDetail) (models.PostDetail, int) {
 }
 
 func GetTopPost() (models.PostListItem, int) {
-	post, err := mysql.GetTopPost()
+	post, err := mysql.GetTopPost(&models.QueryStringGetPostList{
+		Tag:          0,
+		Category:     0,
+		TagName:      "",
+		CategoryName: "",
+		Keyword:      "",
+		Page:         0,
+		Limit:        0,
+	})
 	if err != nil && err != sql.ErrNoRows {
 		zap.L().Error("get top post failed", zap.Error(err))
 		return post, code.CodeServerBusy

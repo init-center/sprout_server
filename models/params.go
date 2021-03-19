@@ -54,8 +54,13 @@ type ParamsAddPost struct {
 }
 
 type QueryStringGetPostList struct {
-	Page  uint64 `form:"page" binding:"gte=1"`
-	Limit uint64 `form:"limit" binding:"gte=1"`
+	Tag          uint64 `form:"tag" json:"tag"`
+	Category     uint64 `form:"category" json:"category"`
+	TagName      string `form:"tagName" json:"tagName"`
+	CategoryName string `form:"categoryName" json:"categoryName"`
+	Keyword      string `form:"keyword" json:"keyword"`
+	Page         uint64 `form:"page" binding:"omitempty,gte=1" json:"page"`
+	Limit        uint64 `form:"limit" binding:"omitempty,gte=1" json:"limit"`
 }
 
 type UriGetPostDetail struct {

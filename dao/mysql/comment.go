@@ -66,7 +66,7 @@ func CheckPostCommentExist(cid uint64) (bool, error) {
 }
 
 func GetPostCommentCount(pid uint64) (uint64, error) {
-	sqlStr := `SELECT count(id) FROM t_post_comment WHERE pid = ?`
+	sqlStr := `SELECT count(id) FROM t_post_comment WHERE pid = ? AND review_status = 1 AND delete_time IS NULL`
 	var count uint64
 	if err := db.Get(&count, sqlStr, pid); err != nil {
 		return 0, err
