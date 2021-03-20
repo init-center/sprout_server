@@ -33,8 +33,18 @@ func Create(p *models.ParamsAddTag) int {
 }
 
 func Update(p *models.ParamsAddTag, u *models.UriUpdateTag) int {
-	// check the category exist
-	exist, err := mysql.CheckTagExistByName(p.Name)
+	// check the tag exist
+	exist, err := mysql.CheckCategoryExistById(u.Id)
+	if err != nil {
+		zap.L().Error("check tag exist by id failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if !exist {
+		return code.CodeTagNotExist
+	}
+
+	exist, err = mysql.CheckTagExistByName(p.Name)
 	if err != nil {
 		zap.L().Error("check tag exist by name failed", zap.Error(err))
 		return code.CodeServerBusy
@@ -55,6 +65,17 @@ func Update(p *models.ParamsAddTag, u *models.UriUpdateTag) int {
 }
 
 func Delete(u *models.UriDeleteTag) int {
+
+	exist, err := mysql.CheckTagExistById(u.Id)
+	if err != nil {
+		zap.L().Error("check tag exist by id failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if !exist {
+		return code.CodeTagNotExist
+	}
+
 	count, err := mysql.GetPostCountOfTagId(u.Id)
 	if err != nil {
 		zap.L().Error("get post count of tag id failed", zap.Error(err))

@@ -18,7 +18,7 @@ func Setup() (*gin.Engine, error) {
 		return r, err
 	}
 	r.Use(logger.GinLogger(), logger.GinRecovery(true), cors.New(cors.Config{
-		AllowOrigins:     []string{"https://init.center", "http://init.center", "http://localhost:3000"},
+		AllowOrigins:     []string{"https://init.center", "http://init.center", "http://localhost:3000", "http://localhost:3001"},
 		AllowMethods:     []string{"GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"},
 		AllowHeaders:     []string{"content-type", "Authorization"},
 		ExposeHeaders:    []string{"Authorization"},
@@ -66,6 +66,16 @@ func Setup() (*gin.Engine, error) {
 		tag.PUT("/:id", middlewares.JwtAuth(), middlewares.AdminAuth(), tagController.Update)
 		tag.DELETE("/:id", middlewares.JwtAuth(), middlewares.AdminAuth(), tagController.Delete)
 		tag.GET("", tagController.GetByQuery)
+	}
+
+	configR := r.Group("/configs")
+	{
+		configController := &controller.ConfigController{}
+		configR.POST("", middlewares.JwtAuth(), middlewares.AdminAuth(), configController.Create)
+		configR.PUT("/:key", middlewares.JwtAuth(), middlewares.AdminAuth(), configController.Update)
+		configR.DELETE("/:key", middlewares.JwtAuth(), middlewares.AdminAuth(), configController.Delete)
+		configR.GET("", configController.GetByQuery)
+		configR.GET("/:key", configController.GetConfigByKey)
 	}
 
 	post := r.Group("/posts")

@@ -153,3 +153,19 @@ type ParamsRecentMonthsAnalysis struct {
 type ParamsGetViewsRank struct {
 	Limit uint8 `form:"limit,default=7"`
 }
+
+type ParamsAddConfig struct {
+	Key     string `json:"key" binding:"required,min=1,max=100"`
+	Value   string `json:"value" binding:"required,min=1"`
+	Explain string `json:"explain" binding:"required,min=1"`
+}
+
+type ParamsUpdateConfig = ParamsAddConfig
+
+type UriUpdateConfig struct {
+	Key string `uri:"key" binding:"required,min=1,max=100"`
+}
+
+type UriGetConfigItem = UriUpdateConfig
+
+type UriDeleteConfig = UriUpdateConfig

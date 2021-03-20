@@ -31,6 +31,8 @@ const (
 	CodeUserIsNotBaned
 	CodeCategoryHasPost
 	CodeTagHasPost
+	CodeConfigKeyExist
+	CodeConfigKeyNotExist
 )
 
 var MessageMap = map[int]string{
@@ -63,6 +65,8 @@ var MessageMap = map[int]string{
 	CodeUserIsNotBaned:       "用户未被封禁",
 	CodeCategoryHasPost:      "分类下存在文章",
 	CodeTagHasPost:           "标签下存在文章",
+	CodeConfigKeyExist:       "配置名已存在",
+	CodeConfigKeyNotExist:    "配置名不存在",
 }
 
 // Error code mapping HTTP status code
@@ -96,6 +100,8 @@ var HCodeMap = map[int]int{
 	CodeUserIsNotBaned:       http.StatusConflict,
 	CodeCategoryHasPost:      http.StatusConflict,
 	CodeTagHasPost:           http.StatusConflict,
+	CodeConfigKeyExist:       http.StatusConflict,
+	CodeConfigKeyNotExist:    http.StatusNotFound,
 }
 
 func Msg(code int) string {

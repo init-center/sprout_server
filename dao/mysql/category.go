@@ -54,10 +54,10 @@ func DeleteCategory(id uint64) (err error) {
 }
 
 func GetCategories(queryFields *queryfields.CategoryQueryFields) (categories models.CategoryList, err error) {
-	sqlStr := `SELECT id,name FROM t_post_category`
+	sqlStr := `SELECT c.id, c.name, COUNT(p.id) AS post_count FROM t_post_category c LEFT JOIN t_post p ON p.category = c.id `
 
 	sqlStr = dynamicConcatCategorySql(sqlStr, queryFields)
-	sqlStr += ` ORDER BY id DESC `
+	sqlStr += `GROUP BY c.id ORDER BY c.id, post_count DESC `
 	var limit = queryFields.Limit
 	if queryFields.Page != 0 && queryFields.Limit != 0 {
 		sqlStr += ` LIMIT ? OFFSET ?`

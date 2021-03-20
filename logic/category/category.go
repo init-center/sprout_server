@@ -34,7 +34,18 @@ func Create(p *models.ParamsAddCategory) int {
 
 func Update(p *models.ParamsAddCategory, u *models.UriUpdateCategory) int {
 	// check the category exist
-	exist, err := mysql.CheckCategoryExistByName(p.Name)
+
+	exist, err := mysql.CheckCategoryExistById(u.Id)
+	if err != nil {
+		zap.L().Error("check category exist by id failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if !exist {
+		return code.CodeCategoryNotExist
+	}
+
+	exist, err = mysql.CheckCategoryExistByName(p.Name)
 	if err != nil {
 		zap.L().Error("check category exist by name failed", zap.Error(err))
 		return code.CodeServerBusy
@@ -55,6 +66,17 @@ func Update(p *models.ParamsAddCategory, u *models.UriUpdateCategory) int {
 }
 
 func Delete(u *models.UriDeleteCategory) int {
+
+	exist, err := mysql.CheckCategoryExistById(u.Id)
+	if err != nil {
+		zap.L().Error("check category exist by id failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if !exist {
+		return code.CodeCategoryNotExist
+	}
+
 	count, err := mysql.GetPostCountOfCategoryId(u.Id)
 	if err != nil {
 		zap.L().Error("get post count of category id failed", zap.Error(err))

@@ -144,3 +144,12 @@ CREATE TABLE `t_page_views` (
     KEY `idx_browser` (`browser`),
     KEY `idx_engine` (`engine`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='浏览记录表';
+
+CREATE TABLE `t_global_config` (
+    `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增id',
+    `config_key` varchar(100) NOT NULL COMMENT '配置名',
+    `config_value` TEXT NOT NULL COMMENT '配置值',
+    `config_explain` varchar(200) NOT NULL COMMENT '配置说明',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='网站配置表';
