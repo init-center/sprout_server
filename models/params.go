@@ -54,13 +54,14 @@ type ParamsAddPost struct {
 }
 
 type QueryStringGetPostList struct {
-	Tag          uint64 `form:"tag" json:"tag"`
-	Category     uint64 `form:"category" json:"category"`
-	TagName      string `form:"tagName" json:"tagName"`
-	CategoryName string `form:"categoryName" json:"categoryName"`
-	Keyword      string `form:"keyword" json:"keyword"`
-	Page         uint64 `form:"page" binding:"omitempty,gte=1" json:"page"`
-	Limit        uint64 `form:"limit" binding:"omitempty,gte=1" json:"limit"`
+	Tag             uint64 `form:"tag" json:"tag"`
+	Category        uint64 `form:"category" json:"category"`
+	TagName         string `form:"tagName" json:"tagName"`
+	CategoryName    string `form:"categoryName" json:"categoryName"`
+	Keyword         string `form:"keyword" json:"keyword"`
+	FirstPageGetTop uint8  `form:"firstPageGetTop" binding:"oneof=0 1" json:"firstPageGetTop"`
+	Page            uint64 `form:"page" binding:"omitempty,gte=1" json:"page"`
+	Limit           uint64 `form:"limit" binding:"omitempty,gte=1" json:"limit"`
 }
 
 type UriGetPostDetail struct {

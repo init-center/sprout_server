@@ -12,7 +12,7 @@ func CreateConfig(p *models.ParamsAddConfig) (err error) {
 }
 
 func CheckConfigExistByKey(key string) (bool, error) {
-	sqlStr := `SELECT count(config_key) FROM t_global_config WHERE config_key = ?`
+	sqlStr := `SELECT COUNT(config_key) FROM t_global_config WHERE config_key = ?`
 	var count int
 	if err := db.Get(&count, sqlStr, key); err != nil {
 		return false, err

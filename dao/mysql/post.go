@@ -527,7 +527,9 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 
 	var limit = qs.Limit
 
-	if qs.Page == 1 {
+	var offset = (qs.Page - 1) * limit
+
+	if qs.Page == 1 && qs.FirstPageGetTop == 1 {
 		// if the page is 1 , get the top post
 		var topPost models.PostListItem
 		topPost, err = GetTopPost(qs)
@@ -536,12 +538,13 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 		}
 		if err == nil {
 			postList.List = append(postList.List, topPost)
+			limit--
 		}
 	}
 
 	if qs.Limit != 0 && qs.Page != 0 {
 		sqlStr += ` LIMIT ? OFFSET ?`
-		err = db.Select(&postList.List, sqlStr, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword, limit, (qs.Page-1)*limit)
+		err = db.Select(&postList.List, sqlStr, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword, limit, offset)
 	} else {
 		err = db.Select(&postList.List, sqlStr, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword)
 	}
