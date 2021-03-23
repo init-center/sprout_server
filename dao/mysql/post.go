@@ -538,7 +538,6 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 		}
 		if err == nil {
 			postList.List = append(postList.List, topPost)
-			limit--
 		}
 	}
 
