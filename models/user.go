@@ -6,6 +6,7 @@ type UserPublicInfo struct {
 	Uid    string `db:"uid" json:"uid"`
 	Name   string `db:"name" json:"name"`
 	Avatar string `db:"avatar" json:"avatar"`
+	Intro  string `db:"intro" json:"intro"`
 }
 
 type User struct {

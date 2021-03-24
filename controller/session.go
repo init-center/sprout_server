@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"sprout_server/common/constants"
 	"sprout_server/common/response"
 	"sprout_server/common/response/code"
 	"sprout_server/logic/session"
@@ -36,6 +37,13 @@ func (s *SessionController) SignIn(c *gin.Context) {
 }
 
 func (s *SessionController) CheckSignIn(c *gin.Context) {
-	response.Send(c, code.CodeOK)
+	uid, exists := c.Get(constants.CtxUidKey)
+	if !exists {
+		response.Send(c, code.CodeNeedLogin)
+		return
+	}
+	response.SendWithData(c, code.CodeOK, gin.H{
+		"uid": uid,
+	})
 
 }

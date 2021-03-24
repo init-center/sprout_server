@@ -20,6 +20,9 @@ func (fc *FavoriteController) CheckUserFavoritePost(c *gin.Context) {
 		response.Send(c, code.CodeInvalidParams)
 		return
 	}
+
+	uid, _ := c.Get(constants.CtxUidKey)
+	p.Uid = uid.(string)
 	// 2. logic handle
 	statusCode := favorite.CheckUserFavoritePost(&p)
 

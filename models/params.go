@@ -136,6 +136,7 @@ type ParamsAdminUpdateUser struct {
 	Birthday *string `json:"birthday" binding:"omitempty,datetime=2006-01-02"`
 	Group    *uint8  `json:"group" binding:"omitempty,oneof=1 2"`
 	IsDelete *uint8  `json:"isDelete" binding:"omitempty,oneof=0 1"`
+	Intro    *string `json:"intro" binding:"omitempty,max=128"`
 }
 
 type ParamsBanUser struct {

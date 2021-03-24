@@ -10,6 +10,7 @@ CREATE TABLE `t_user` (
     `birthday` date DEFAULT NULL COMMENT '生日',
     `avatar` varchar(2083) DEFAULT NULL COMMENT '头像地址',
     `group` tinyint(3) UNSIGNED NOT NULL DEFAULT '2' COMMENT '用户组 1：管理员 2：普通用户',
+    `intro` varchar(128) DEFAULT NULL COMMENT '介绍',
     `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `delete_time` timestamp NULL DEFAULT NULL COMMENT '注销时间',

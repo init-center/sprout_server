@@ -81,13 +81,14 @@ func AdminUpdateUser(p *models.ParamsAdminUpdateUser, u *models.UriUpdateUser) (
 	u.email = IFNULL(?, u.email),
 	u.tel = IFNULL(?, u.tel),
 	u.birthday = IFNULL(?, u.birthday),
+	u.intro = IFNULL(?, u.intro),
 	u.group = CASE ? WHEN NULL THEN u.group 
 	WHEN 1 THEN 1 
 	WHEN 2 THEN 2 
 	ELSE u.group END 
 	WHERE u.uid = ?`
 
-	_, err = db.Exec(sqlStr, p.IsDelete, p.Name, p.Avatar, p.Password, p.Email, p.Tel, p.Birthday, p.Group, u.Uid)
+	_, err = db.Exec(sqlStr, p.IsDelete, p.Name, p.Avatar, p.Password, p.Email, p.Tel, p.Birthday, p.Intro, p.Group, u.Uid)
 	if err != nil {
 		return
 	}
@@ -141,6 +142,7 @@ func AdminGetAllUsers(queryFields *queryfields.UserQueryFields) (users models.Us
 	u.tel,
 	u.gender,
 	u.birthday,
+	u.intro,
 	u.create_time,
 	u.update_time,
 	u.delete_time,
