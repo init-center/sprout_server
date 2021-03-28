@@ -33,6 +33,8 @@ func Setup() (*gin.Engine, error) {
 	{
 		userController := &controller.UserController{}
 		user.POST("", userController.SignUp)
+		user.GET("/public/:uid", userController.GetPublicUserInfo)
+		user.GET("", middlewares.JwtAuth(), userController.GetPrivateUserInfo)
 
 	}
 
@@ -141,6 +143,7 @@ func Setup() (*gin.Engine, error) {
 		// because the gin(httpRouter) does not support it, it will cause conflicts and panic directly
 		comment.GET("/posts/:pid/comment/:cid/children", commentController.GetPostParentCommentChildren)
 		comment.POST("/posts/:pid", middlewares.JwtAuth(), commentController.CreatePostComment)
+		comment.GET("", commentController.GetPublicComments)
 	}
 
 	favorite := r.Group("/favorites")
@@ -149,6 +152,7 @@ func Setup() (*gin.Engine, error) {
 		favorite.GET("/posts/:pid", middlewares.JwtAuth(), favoriteController.CheckUserFavoritePost)
 		favorite.POST("/posts/:pid", middlewares.JwtAuth(), favoriteController.AddUserFavoritePost)
 		favorite.DELETE("/posts/:pid", middlewares.JwtAuth(), favoriteController.DeleteUserFavoritePost)
+		favorite.GET("", favoriteController.GetByQuery)
 	}
 
 	pageViews := r.Group("/views")

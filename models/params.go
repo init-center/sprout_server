@@ -77,6 +77,7 @@ type ParamsAddComment struct {
 
 type ParamsGetCommentList struct {
 	Pid        uint64 `uri:"pid"`
+	Cid        uint64 `form:"cid"`
 	Page       uint64 `form:"page" binding:"gte=1"`
 	Limit      uint64 `form:"limit" binding:"gte=1"`
 	ChildLimit uint64 `form:"child_limit,default=2" binding:"gte=1"`
@@ -125,6 +126,8 @@ type ParamsAdminUpdateComment struct {
 type UriUpdateUser struct {
 	Uid string `uri:"uid" binding:"required"`
 }
+
+type UriGetUserInfo = UriUpdateUser
 
 type ParamsAdminUpdateUser struct {
 	Name     *string `json:"name" binding:"omitempty,ne=admin,checkName"`

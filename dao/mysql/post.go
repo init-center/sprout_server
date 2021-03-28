@@ -319,11 +319,6 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 		return
 	}
 
-	if len(postList.List) == 0 {
-		postList.List = make([]models.PostItemByAdmin, 0, 0)
-		return
-	}
-
 	// get post count
 	postCountSql := `
 	SELECT COUNT(DISTINCT p.id) 
@@ -343,12 +338,14 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 	err = db.Get(&postList.Page.Count, postCountSql, queryFields.Pid, queryFields.Category,
 		queryFields.Tag, queryFields.CategoryName, queryFields.TagName, queryFields.CreateTimeStart, queryFields.CreateTimeEnd,
 		queryFields.Keyword, queryFields.Keyword)
-	if err != nil {
-		return
-	}
 
 	postList.Page.CurrentPage = queryFields.Page
 	postList.Page.Size = queryFields.Limit
+
+	if len(postList.List) == 0 {
+		postList.List = make([]models.PostItemByAdmin, 0, 0)
+		return
+	}
 
 	// get tags
 	tagsSqlStr := `SELECT pt.id, pt.name FROM t_post_tag_relation ptr LEFT JOIN t_post_tag pt ON pt.id = ptr.tid WHERE ptr.pid = ?`
@@ -548,14 +545,6 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 		err = db.Select(&postList.List, sqlStr, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword)
 	}
 
-	if err != nil {
-		return
-	}
-	if len(postList.List) == 0 {
-		postList.List = make([]models.PostListItem, 0, 0)
-		return
-	}
-
 	// get post count
 	postCountSql := `
 	SELECT COUNT(DISTINCT p.id) 
@@ -576,7 +565,9 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 	postCountSql = concatPostListSql(postCountSql, qs)
 
 	err = db.Get(&postList.Page.Count, postCountSql, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword)
-	if err != nil {
+
+	if len(postList.List) == 0 {
+		postList.List = make([]models.PostListItem, 0, 0)
 		return
 	}
 

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"sprout_server/common/constants"
 	"sprout_server/common/response"
 	"sprout_server/common/response/code"
 	"sprout_server/logic/user"
@@ -26,6 +27,40 @@ func (u *UserController) SignUp(c *gin.Context) {
 	statusCode := user.Create(&p)
 	// 3. response result
 	response.Send(c, statusCode)
+
+}
+
+func (u *UserController) GetPublicUserInfo(c *gin.Context) {
+	var p models.UriGetUserInfo
+	if err := c.ShouldBindUri(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+	userInfo, statusCode := user.GetPublicUserInfo(p)
+
+	if statusCode != code.CodeOK {
+		response.Send(c, statusCode)
+		return
+	}
+	response.SendWithData(c, statusCode, userInfo)
+
+}
+
+func (u *UserController) GetPrivateUserInfo(c *gin.Context) {
+	var p models.UriGetUserInfo
+	uid, exists := c.Get(constants.CtxUidKey)
+	if !exists {
+		response.Send(c, code.CodeNeedLogin)
+		return
+	}
+	p.Uid = uid.(string)
+	userInfo, statusCode := user.GetPrivateUserInfo(p)
+
+	if statusCode != code.CodeOK {
+		response.Send(c, statusCode)
+		return
+	}
+	response.SendWithData(c, statusCode, userInfo)
 
 }
 

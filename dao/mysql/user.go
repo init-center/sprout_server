@@ -131,6 +131,55 @@ func UnblockUser(u *models.UriUpdateUser) (err error) {
 	return err
 }
 
+func GetUserPublicInfo(uid string) (userInfo models.UserPublicInfo, err error) {
+	sqlStr := `SELECT 
+	u.uid,
+	u.name,
+	u.avatar,
+	u.group,
+	u.intro,
+	u.create_time,
+	IFNULL(ub.end_time > NOW(), 0) AS is_baned 
+	FROM t_user u 
+	LEFT JOIN t_user_ban ub 
+	ON u.uid = ub.uid 
+	WHERE u.uid = ?
+	`
+
+	err = db.Get(&userInfo, sqlStr, uid)
+
+	return
+}
+
+func GetUserPrivateInfo(uid string) (userInfo models.UserPrivateInfo, err error) {
+	sqlStr := `
+	SELECT 
+	u.uid,
+	u.name,
+	u.avatar,
+	u.email,
+	u.group,
+	u.tel,
+	u.gender,
+	u.birthday,
+	u.intro,
+	u.create_time,
+	u.update_time,
+	u.delete_time,
+	ub.start_time AS ban_start_time,
+	ub.end_time AS ban_end_time, 
+	IFNULL(ub.end_time > NOW(), 0) AS is_baned 
+	FROM t_user u 
+	LEFT JOIN t_user_ban ub 
+	ON u.uid = ub.uid 
+	WHERE u.uid = ?
+	`
+
+	err = db.Get(&userInfo, sqlStr, uid)
+
+	return
+}
+
 func AdminGetAllUsers(queryFields *queryfields.UserQueryFields) (users models.UserDetailList, err error) {
 	sqlStr := `
 	SELECT 
@@ -176,11 +225,6 @@ func AdminGetAllUsers(queryFields *queryfields.UserQueryFields) (users models.Us
 		return
 	}
 
-	if len(users.List) == 0 {
-		users.List = make([]models.UserDetailByAdmin, 0, 0)
-		return
-	}
-
 	countSqlStr := `
 	SELECT COUNT(DISTINCT u.id) 
 	FROM t_user u 
@@ -198,6 +242,10 @@ func AdminGetAllUsers(queryFields *queryfields.UserQueryFields) (users models.Us
 
 	users.Page.CurrentPage = queryFields.Page
 	users.Page.Size = queryFields.Limit
+
+	if len(users.List) == 0 {
+		users.List = make([]models.UserDetailByAdmin, 0, 0)
+	}
 
 	return
 

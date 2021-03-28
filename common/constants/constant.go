@@ -32,3 +32,5 @@ const (
 var EcodeTypeNameMap = map[int]string{
 	EcodeSignUpType: "注册",
 }
+
+const ShouldReplyCommentChildLimit = 5

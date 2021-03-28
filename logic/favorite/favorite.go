@@ -1,9 +1,11 @@
 package favorite
 
 import (
+	"database/sql"
 	"sprout_server/common/response/code"
 	"sprout_server/dao/mysql"
 	"sprout_server/models"
+	"sprout_server/models/queryfields"
 
 	"go.uber.org/zap"
 )
@@ -69,4 +71,14 @@ func DeleteUserFavoritePost(p *models.ParamsPostFavorite) int {
 	}
 
 	return code.CodeOK
+}
+
+func GetByQuery(p *queryfields.FavoriteQueryFields) (models.FavoritePostList, int) {
+	favorites, err := mysql.GetFavorites(p)
+	if err != nil && err != sql.ErrNoRows {
+		zap.L().Error("get favorites failed", zap.Error(err))
+		return favorites, code.CodeServerBusy
+	}
+
+	return favorites, code.CodeOK
 }

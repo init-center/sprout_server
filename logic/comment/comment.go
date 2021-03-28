@@ -2,6 +2,8 @@ package comment
 
 import (
 	"database/sql"
+	"math"
+	"sprout_server/common/constants"
 	"sprout_server/common/response/code"
 	"sprout_server/dao/mysql"
 	"sprout_server/models"
@@ -65,7 +67,29 @@ func AdminUpdatePostComment(p *models.ParamsAdminUpdateComment, u *models.UriUpd
 }
 
 func GetPostCommentList(p *models.ParamsGetCommentList) (models.CommentList, int) {
-	commentList, err := mysql.GetPostCommentList(p)
+	var shouldReplyCommentChildPage uint64 = 0
+	var parentCidOfReplyChildComment uint64 = 0
+	if p.Cid != 0 {
+		commentItem, err := mysql.GetCommentItem(p.Cid)
+		if err == nil {
+			parentCid := commentItem.Cid
+			if commentItem.ParentCid != nil {
+				parentCid = *commentItem.ParentCid
+				parentCidOfReplyChildComment = parentCid
+				childIndex, err := mysql.GetIndexOfPostPublicChildComment(p.Pid, p.Cid, parentCid, false)
+				if err == nil {
+					shouldReplyCommentChildPage = uint64(math.Ceil(float64(childIndex) / float64(constants.ShouldReplyCommentChildLimit)))
+				}
+			}
+			index, err := mysql.GetIndexOfPostPublicParentComment(p.Pid, parentCid, true)
+			if err == nil {
+				p.Page = uint64(math.Ceil(float64(index) / float64(p.Limit)))
+			}
+		}
+
+	}
+
+	commentList, err := mysql.GetPostCommentList(p, parentCidOfReplyChildComment, shouldReplyCommentChildPage)
 	if err != nil && err != sql.ErrNoRows {
 		zap.L().Error("get post commentList failed", zap.Error(err))
 		return commentList, code.CodeServerBusy

@@ -62,7 +62,7 @@ func Create(p *models.ParamsSignUp) int {
 
 	// 6. insert the new user to db
 	u := &models.User{
-		UserPublicInfo: &models.UserPublicInfo{
+		UserBasicInfo: &models.UserBasicInfo{
 			Uid:    p.Uid,
 			Name:   p.Name,
 			Avatar: settings.Conf.SundriesConfig.DefaultAvatar,
@@ -76,6 +76,34 @@ func Create(p *models.ParamsSignUp) int {
 	}
 	// success
 	return code.CodeCreated
+}
+
+func GetPublicUserInfo(p models.UriGetUserInfo) (models.UserPublicInfo, int) {
+	userInfo, err := mysql.GetUserPublicInfo(p.Uid)
+	if err != nil && err != sql.ErrNoRows {
+		zap.L().Error(" get public user info failed", zap.Error(err))
+		return userInfo, code.CodeServerBusy
+	}
+
+	if err == sql.ErrNoRows {
+		return userInfo, code.CodeUserNotExist
+	}
+
+	return userInfo, code.CodeOK
+}
+
+func GetPrivateUserInfo(p models.UriGetUserInfo) (models.UserPrivateInfo, int) {
+	userInfo, err := mysql.GetUserPrivateInfo(p.Uid)
+	if err != nil && err != sql.ErrNoRows {
+		zap.L().Error(" get private user info failed", zap.Error(err))
+		return userInfo, code.CodeServerBusy
+	}
+
+	if err == sql.ErrNoRows {
+		return userInfo, code.CodeUserNotExist
+	}
+
+	return userInfo, code.CodeOK
 }
 
 func AdminGetUsers(p *queryfields.UserQueryFields) (models.UserDetailList, int) {

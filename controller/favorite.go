@@ -6,6 +6,7 @@ import (
 	"sprout_server/common/response/code"
 	"sprout_server/logic/favorite"
 	"sprout_server/models"
+	"sprout_server/models/queryfields"
 
 	"github.com/gin-gonic/gin"
 )
@@ -74,4 +75,20 @@ func (fc *FavoriteController) DeleteUserFavoritePost(c *gin.Context) {
 	// 3. response result
 	response.Send(c, statusCode)
 	return
+}
+
+func (fc *FavoriteController) GetByQuery(c *gin.Context) {
+	var p queryfields.FavoriteQueryFields
+	if err := c.ShouldBindQuery(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+	favorites, statusCode := favorite.GetByQuery(&p)
+
+	if statusCode != code.CodeOK {
+		response.Send(c, statusCode)
+		return
+	}
+
+	response.SendWithData(c, statusCode, favorites)
 }

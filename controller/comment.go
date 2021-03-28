@@ -105,6 +105,25 @@ func (cc *CommentController) GetPostComments(c *gin.Context) {
 	response.SendWithData(c, statusCode, comments)
 }
 
+func (cc *CommentController) GetPublicComments(c *gin.Context) {
+	var p queryfields.CommentQueryFields
+	if err := c.ShouldBindQuery(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+
+	p.ReviewStatus = 1
+	p.IsDelete = 0
+
+	comments, statusCode := comment.GetPostComments(&p)
+
+	if statusCode != code.CodeOK {
+		response.Send(c, statusCode)
+		return
+	}
+	response.SendWithData(c, statusCode, comments)
+}
+
 func (cc *CommentController) GetPostParentCommentChildren(c *gin.Context) {
 	var p models.ParamsGetParentCommentChildren
 	if err := c.ShouldBindQuery(&p); err != nil {

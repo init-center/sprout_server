@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"sprout_server/common/constants"
 	"sprout_server/common/snowflake"
 	"sprout_server/models"
 	"sprout_server/models/queryfields"
@@ -75,7 +76,58 @@ func GetPostCommentCount(pid uint64) (uint64, error) {
 	return count, nil
 }
 
-func GetPostCommentList(p *models.ParamsGetCommentList) (commentList models.CommentList, err error) {
+func GetIndexOfPostPublicParentComment(pid uint64, cid uint64, desc bool) (uint64, error) {
+	sqlStr := `SELECT count(id) FROM t_post_comment WHERE pid = ? AND parent_cid IS NULL AND review_status = 1 AND delete_time IS NULL AND cid < (? + 1) `
+	if desc {
+		sqlStr += `SELECT count(id) FROM t_post_comment WHERE pid = ? AND parent_cid IS NULL AND review_status = 1 AND delete_time IS NULL AND cid > (? - 1) `
+	}
+	var index uint64
+	if err := db.Get(&index, sqlStr, pid, cid); err != nil {
+		return 0, err
+	}
+
+	return index, nil
+}
+
+func GetIndexOfPostPublicChildComment(pid uint64, cid uint64, parentCid uint64, desc bool) (uint64, error) {
+	sqlStr := `SELECT count(id) FROM t_post_comment WHERE pid = ? AND parent_cid = ? AND review_status = 1 AND delete_time IS NULL AND cid < (? + 1) `
+	if desc {
+		sqlStr += `SELECT count(id) FROM t_post_comment WHERE pid = ? AND parent_cid = ? AND review_status = 1 AND delete_time IS NULL AND cid > (? - 1) `
+	}
+	var index uint64
+	if err := db.Get(&index, sqlStr, pid, parentCid, cid); err != nil {
+		return 0, err
+	}
+
+	return index, nil
+}
+
+func GetCommentItem(cid uint64) (commentItem models.CommentItem, err error) {
+	sqlStr := `SELECT 
+	pc.cid,
+    pc.pid, 
+    pc.uid,
+	pc.content,
+	pc.target_cid,
+	pc.target_uid,
+	pc.parent_cid,
+	pc.parent_uid,
+	u.name AS user_name,
+	u.avatar,
+    pc.create_time, 
+	pc.update_time 
+	FROM t_post_comment pc 
+	LEFT JOIN t_user u 
+	ON pc.uid = u.uid 
+	WHERE pc.cid = ?  
+	AND pc.review_status = 1 
+	AND pc.delete_time IS NULL`
+
+	err = db.Get(&commentItem, sqlStr, cid)
+	return
+}
+
+func GetPostCommentList(p *models.ParamsGetCommentList, parentCidOfReplyChildComment uint64, shouldReplyCommentChildPage uint64) (commentList models.CommentList, err error) {
 	sqlStr := `
 	SELECT 
 	pc.cid,
@@ -147,7 +199,7 @@ func GetPostCommentList(p *models.ParamsGetCommentList) (commentList models.Comm
 	AND pc.parent_cid = ? 
 	AND pc.review_status = 1 
 	AND pc.delete_time IS NULL 
-	ORDER BY pc.create_time DESC 
+	ORDER BY pc.create_time 
 	LIMIT ? 
 	OFFSET ?`
 
@@ -165,7 +217,12 @@ func GetPostCommentList(p *models.ParamsGetCommentList) (commentList models.Comm
 	AND pc.delete_time IS NULL`
 
 	for i := range commentList.List {
-		err = db.Select(&commentList.List[i].Children, childSqlStr, p.Pid, commentList.List[i].Cid, p.ChildLimit, (p.Page-1)*p.Limit)
+		if commentList.List[i].Cid == parentCidOfReplyChildComment {
+			err = db.Select(&commentList.List[i].Children, childSqlStr, p.Pid, commentList.List[i].Cid,
+				constants.ShouldReplyCommentChildLimit, (shouldReplyCommentChildPage-1)*constants.ShouldReplyCommentChildLimit)
+		} else {
+			err = db.Select(&commentList.List[i].Children, childSqlStr, p.Pid, commentList.List[i].Cid, p.ChildLimit, (p.Page-1)*p.ChildLimit)
+		}
 		if err != nil {
 			return
 		}
@@ -179,8 +236,13 @@ func GetPostCommentList(p *models.ParamsGetCommentList) (commentList models.Comm
 			return
 		}
 
-		commentList.List[i].Page.CurrentPage = p.Page
-		commentList.List[i].Page.Size = p.ChildLimit
+		if commentList.List[i].Cid == parentCidOfReplyChildComment {
+			commentList.List[i].Page.CurrentPage = shouldReplyCommentChildPage
+			commentList.List[i].Page.Size = constants.ShouldReplyCommentChildLimit
+		} else {
+			commentList.List[i].Page.CurrentPage = p.Page
+			commentList.List[i].Page.Size = p.ChildLimit
+		}
 
 		for j := range commentList.List[i].Children {
 			err = db.Get(&commentList.List[i].Children[j].TargetName, childTargetNameSql, commentList.List[i].Children[j].TargetUid)
@@ -215,7 +277,7 @@ func GetPostParentCommentChildren(p *models.ParamsGetParentCommentChildren) (par
 	AND pc.parent_cid = ? 
 	AND pc.review_status = 1 
 	AND pc.delete_time IS NULL 
-	ORDER BY pc.create_time DESC 
+	ORDER BY pc.create_time 
 	LIMIT ? 
 	OFFSET ?`
 
@@ -234,13 +296,9 @@ func GetPostParentCommentChildren(p *models.ParamsGetParentCommentChildren) (par
 		return
 	}
 
+	err = db.Get(&parentCommentChildren.Page.Count, childCommentCountSqlStr, p.Pid, p.Cid)
 	if len(parentCommentChildren.List) == 0 {
 		parentCommentChildren.List = make([]models.CommentItem, 0, 0)
-	}
-
-	err = db.Get(&parentCommentChildren.Page.Count, childCommentCountSqlStr, p.Pid, p.Cid)
-	if err != nil {
-		return
 	}
 
 	parentCommentChildren.Page.CurrentPage = p.Page
