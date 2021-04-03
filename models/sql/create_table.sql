@@ -88,6 +88,18 @@ CREATE TABLE `t_post_views` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='文章阅读量表';
 
 
+#友链表
+CREATE TABLE `t_friends` (
+    `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增id',
+    `name` varchar(50) NOT NULL COMMENT '名称',
+    `url` varchar(512) DEFAULT NULL COMMENT '地址',
+    `avatar` varchar(512) DEFAULT NULL COMMENT '头像地址',
+    `intro` varchar(128) DEFAULT NULL COMMENT '介绍',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY  `idx_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='友链表';
+
+
 #评论表
 CREATE TABLE `t_post_comment` (
     `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增id',
@@ -99,6 +111,10 @@ CREATE TABLE `t_post_comment` (
     `parent_cid` bigint(20) UNSIGNED NULL DEFAULT NULL COMMENT  '父评论id',
     `parent_uid` varchar(20) NULL DEFAULT NULL COMMENT '父评论用户id',
     `content` varchar(1024) NOT NULl COMMENT '评论内容',
+    `ip` varchar(128) NOT NULL COMMENT '用户ip',
+    `os` varchar(128) COMMENT '系统',
+    `browser` varchar(128) COMMENT '浏览器',
+    `engine` varchar(128) COMMENT '浏览器引擎',
     `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发表时间',
     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `review_status` tinyint(2) UNSIGNED NOT NULL DEFAULT '0' COMMENT '审核状态 0：未审核 1：通过 2：不通过',
@@ -132,6 +148,7 @@ CREATE TABLE `t_user_ban` (
 CREATE TABLE `t_page_views` (
     `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增id',
     `uid` varchar(20) COMMENT '用户id',
+    `url` varchar(2083) NOT NULL COMMENT '浏览地址',
     `ip` varchar(128) NOT NULL COMMENT '用户ip',
     `os` varchar(128) COMMENT '系统',
     `browser` varchar(128) COMMENT '浏览器',

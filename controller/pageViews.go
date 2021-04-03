@@ -5,6 +5,7 @@ import (
 	"sprout_server/common/response"
 	"sprout_server/common/response/code"
 	"sprout_server/logic/pageViews"
+	"sprout_server/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,6 +13,12 @@ import (
 type PageViewsController struct{}
 
 func (pvc *PageViewsController) CreatePageViews(c *gin.Context) {
+
+	var p models.ParamsCreatePageView
+	if err := c.ShouldBindJSON(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
 
 	uid, _ := c.Get(constants.CtxUidKey)
 	ip, _ := c.Get(constants.CtxOriginIpKey)
@@ -37,7 +44,7 @@ func (pvc *PageViewsController) CreatePageViews(c *gin.Context) {
 	if browser == nil {
 		browser = ""
 	}
-	statusCode := pageViews.CreatePageViews(uid.(string), ip.(string), ua.(string), os.(string), engine.(string), browser.(string))
+	statusCode := pageViews.CreatePageViews(uid.(string), p.Url, ip.(string), ua.(string), os.(string), engine.(string), browser.(string))
 
 	response.Send(c, statusCode)
 	return

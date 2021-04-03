@@ -40,7 +40,24 @@ func (cc *CommentController) CreatePostComment(c *gin.Context) {
 		return
 	}
 	p.Uid = uid.(string)
-	statusCode := comment.CreatePostComment(&p)
+
+	ip, _ := c.Get(constants.CtxOriginIpKey)
+	os, _ := c.Get(constants.CtxOriginOsKey)
+	engine, _ := c.Get(constants.CtxOriginEngineKey)
+	browser, _ := c.Get(constants.CtxOriginBrowserKey)
+	if ip == nil {
+		uid = ""
+	}
+	if os == nil {
+		os = ""
+	}
+	if engine == nil {
+		engine = ""
+	}
+	if browser == nil {
+		browser = ""
+	}
+	statusCode := comment.CreatePostComment(&p, ip.(string), os.(string), engine.(string), browser.(string))
 
 	// 3. response result
 	response.Send(c, statusCode)

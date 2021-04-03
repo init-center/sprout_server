@@ -9,6 +9,9 @@ type BaseCommentItem struct {
 	UserName   string     `db:"user_name" json:"userName"`
 	Avatar     string     `db:"avatar" json:"avatar"`
 	Content    string     `db:"content" json:"content"`
+	OS         string     `db:"os" json:"os"`
+	Browser    string     `db:"browser" json:"browser"`
+	Engine     string     `db:"engine" json:"engine"`
 	CreateTime time.Time  `db:"create_time" json:"createTime"`
 	UpdateTime time.Time  `db:"update_time" json:"updateTime"`
 	DeleteTime *time.Time `db:"delete_time" json:"deleteTime"`
@@ -25,6 +28,7 @@ type CommentItem struct {
 
 type CommentItemByAdmin struct {
 	*CommentItem
+	Ip           string `db:"ip" json:"ip"`
 	PostTitle    string `db:"post_title" json:"postTitle"`
 	ReviewStatus uint8  `db:"review_status" json:"reviewStatus"`
 }

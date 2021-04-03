@@ -33,6 +33,8 @@ const (
 	CodeTagHasPost
 	CodeConfigKeyExist
 	CodeConfigKeyNotExist
+	CodeFriendExist
+	CodeFriendNotExist
 )
 
 var MessageMap = map[int]string{
@@ -67,6 +69,8 @@ var MessageMap = map[int]string{
 	CodeTagHasPost:           "标签下存在文章",
 	CodeConfigKeyExist:       "配置名已存在",
 	CodeConfigKeyNotExist:    "配置名不存在",
+	CodeFriendExist:          "友链已存在",
+	CodeFriendNotExist:       "友链不存在",
 }
 
 // Error code mapping HTTP status code
@@ -102,6 +106,8 @@ var HCodeMap = map[int]int{
 	CodeTagHasPost:           http.StatusConflict,
 	CodeConfigKeyExist:       http.StatusConflict,
 	CodeConfigKeyNotExist:    http.StatusNotFound,
+	CodeFriendExist:          http.StatusConflict,
+	CodeFriendNotExist:       http.StatusNotFound,
 }
 
 func Msg(code int) string {

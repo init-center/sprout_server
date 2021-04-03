@@ -8,8 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func CreatePageViews(uid string, ip string, ua string, os string, engine string, browser string) int {
-	err := mysql.CreatePageViews(uid, ip, ua, os, engine, browser)
+func CreatePageViews(uid string, url string, ip string, ua string, os string, engine string, browser string) int {
+	err := mysql.CreatePageViews(uid, url, ip, ua, os, engine, browser)
 	if err != nil {
 		zap.L().Error("create page views failed", zap.Error(err))
 		return code.CodeServerBusy

@@ -20,7 +20,7 @@ func getParentCidByTargetCid(targetCid uint64) (parentCid uint64, err error) {
 	return
 }
 
-func CreatePostComment(p *models.ParamsAddComment) (err error) {
+func CreatePostComment(p *models.ParamsAddComment, ip string, os string, engine string, browser string) (err error) {
 	var cid = snowflake.GenID()
 
 	hasTarget := p.TargetCid != 0
@@ -47,11 +47,11 @@ func CreatePostComment(p *models.ParamsAddComment) (err error) {
 			return err
 		}
 
-		sqlStr = `INSERT INTO t_post_comment(cid, pid, uid, target_cid, target_uid, parent_cid, parent_uid, content) VALUES(?, ?, ?, ?, ?, ?, ?, ?)`
-		_, err = db.Exec(sqlStr, cid, p.Pid, p.Uid, p.TargetCid, targetUid, parentCid, parentUid, p.Content)
+		sqlStr = `INSERT INTO t_post_comment(cid, pid, uid, target_cid, target_uid, parent_cid, parent_uid, content,ip, os, engine, browser) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		_, err = db.Exec(sqlStr, cid, p.Pid, p.Uid, p.TargetCid, targetUid, parentCid, parentUid, p.Content, ip, os, engine, browser)
 	} else {
-		sqlStr = `INSERT INTO t_post_comment(cid, pid, uid, content) VALUES(?, ?, ?, ?)`
-		_, err = db.Exec(sqlStr, cid, p.Pid, p.Uid, p.Content)
+		sqlStr = `INSERT INTO t_post_comment(cid, pid, uid, content,ip, os, engine, browser) VALUES(?, ?, ?, ?, ?, ?, ?, ?)`
+		_, err = db.Exec(sqlStr, cid, p.Pid, p.Uid, p.Content, ip, os, engine, browser)
 	}
 
 	return
@@ -112,6 +112,9 @@ func GetCommentItem(cid uint64) (commentItem models.CommentItem, err error) {
 	pc.target_uid,
 	pc.parent_cid,
 	pc.parent_uid,
+    pc.os,
+    pc.engine,
+    pc.browser,
 	u.name AS user_name,
 	u.avatar,
     pc.create_time, 
@@ -134,6 +137,9 @@ func GetPostCommentList(p *models.ParamsGetCommentList, parentCidOfReplyChildCom
     pc.pid, 
     pc.uid,
 	pc.content,
+	pc.os,
+    pc.engine,
+    pc.browser,
 	u.name AS user_name,
 	u.avatar,
     pc.create_time, 
@@ -184,6 +190,9 @@ func GetPostCommentList(p *models.ParamsGetCommentList, parentCidOfReplyChildCom
     pc.pid, 
     pc.uid,
 	pc.content,
+	pc.os,
+    pc.engine,
+    pc.browser,
 	pc.target_cid,
 	pc.target_uid,
 	pc.parent_cid,
@@ -262,6 +271,9 @@ func GetPostParentCommentChildren(p *models.ParamsGetParentCommentChildren) (par
     pc.pid, 
     pc.uid,
 	pc.content,
+	pc.os,
+    pc.engine,
+    pc.browser,
 	pc.target_cid,
 	pc.target_uid,
 	pc.parent_cid,
@@ -321,6 +333,10 @@ func GetPostComments(queryFields *queryfields.CommentQueryFields) (comments mode
 	p.title AS post_title, 
     pc.uid,
 	pc.content,
+	pc.ip,
+	pc.os,
+    pc.engine,
+    pc.browser,
 	pc.target_cid,
 	pc.target_uid,
 	pc.parent_cid,

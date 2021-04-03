@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func CreatePostComment(p *models.ParamsAddComment) int {
+func CreatePostComment(p *models.ParamsAddComment, ip string, os string, engine string, browser string) int {
 	// check the post exist
 	exist, err := mysql.CheckPostExistById(p.Pid)
 	if err != nil {
@@ -37,7 +37,7 @@ func CreatePostComment(p *models.ParamsAddComment) int {
 	}
 
 	//to create
-	if err := mysql.CreatePostComment(p); err != nil {
+	if err := mysql.CreatePostComment(p, ip, os, engine, browser); err != nil {
 		zap.L().Error("create post comment failed", zap.Error(err))
 		return code.CodeServerBusy
 	}

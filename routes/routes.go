@@ -162,5 +162,14 @@ func Setup() (*gin.Engine, error) {
 		pageViews.GET("", pageViewsController.GetPageViews)
 	}
 
+	friend := r.Group("/friends")
+	{
+		friendController := &controller.FriendController{}
+		friend.POST("", middlewares.JwtAuth(), middlewares.AdminAuth(), friendController.Create)
+		friend.GET("", friendController.GetByQuery)
+		friend.PUT("/:id", middlewares.JwtAuth(), middlewares.AdminAuth(), friendController.Update)
+		friend.DELETE("/:id", middlewares.JwtAuth(), middlewares.AdminAuth(), friendController.Delete)
+	}
+
 	return r, nil
 }

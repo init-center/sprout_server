@@ -174,3 +174,20 @@ type UriUpdateConfig struct {
 type UriGetConfigItem = UriUpdateConfig
 
 type UriDeleteConfig = UriUpdateConfig
+
+type ParamsCreatePageView struct {
+	Url string `json:"url" binding:"required,url"`
+}
+
+type ParamsAddFriend struct {
+	Name   string `json:"name" binding:"required,min=1,max=50"`
+	Url    string `json:"url" binding:"required,url"`
+	Avatar string `json:"avatar" binding:"required,url"`
+	Intro  string `json:"intro" binding:"required,min=1,max=128"`
+}
+
+type UriUpdateFriend struct {
+	Id uint64 `uri:"id" binding:"required"`
+}
+
+type UriDeleteFriend = UriUpdateTag
