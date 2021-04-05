@@ -129,17 +129,28 @@ type UriUpdateUser struct {
 
 type UriGetUserInfo = UriUpdateUser
 
-type ParamsAdminUpdateUser struct {
+type BaseParamsUpdateUser struct {
 	Name     *string `json:"name" binding:"omitempty,ne=admin,checkName"`
 	Avatar   *string `json:"avatar" binding:"omitempty,url"`
-	Password *string `json:"password" binding:"omitempty,min=6,max=16,checkPwd"`
 	Email    *string `json:"email" binding:"omitempty,email"`
 	Gender   *uint8  `json:"gender" binding:"omitempty,oneof=0 1"`
 	Tel      *string `json:"tel" binding:"omitempty,checkTel"`
 	Birthday *string `json:"birthday" binding:"omitempty,datetime=2006-01-02"`
+	Intro    *string `json:"intro" binding:"omitempty,max=128"`
+}
+
+type ParamsUpdateUser struct {
+	*BaseParamsUpdateUser
+	ECode      string  `json:"eCode" binding:"required"`
+	Password   *string `json:"password" binding:"omitempty,min=6,max=16,checkPwd"`
+	RePassword *string `json:"rePassword" binding:"omitempty,eqfield=Password,min=6,max=16,checkPwd"`
+}
+
+type ParamsAdminUpdateUser struct {
+	*BaseParamsUpdateUser
+	Password *string `json:"password" binding:"omitempty,min=6,max=16,checkPwd"`
 	Group    *uint8  `json:"group" binding:"omitempty,oneof=1 2"`
 	IsDelete *uint8  `json:"isDelete" binding:"omitempty,oneof=0 1"`
-	Intro    *string `json:"intro" binding:"omitempty,max=128"`
 }
 
 type ParamsBanUser struct {

@@ -97,6 +97,35 @@ func (u *UserController) AdminUpdateUser(c *gin.Context) {
 
 }
 
+func (u *UserController) UpdateUser(c *gin.Context) {
+	var p models.ParamsUpdateUser
+	if err := c.ShouldBindJSON(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+	var uid, exists = c.Get(constants.CtxUidKey)
+	if !exists {
+		response.Send(c, code.CodeNeedLogin)
+		return
+	}
+
+	statusCode := user.UpdateUser(&p, uid.(string))
+	response.Send(c, statusCode)
+
+}
+
+func (u *UserController) DeleteUser(c *gin.Context) {
+	var uid, exists = c.Get(constants.CtxUidKey)
+	if !exists {
+		response.Send(c, code.CodeNeedLogin)
+		return
+	}
+
+	statusCode := user.DeleteUser(uid.(string))
+	response.Send(c, statusCode)
+
+}
+
 func (u *UserController) BanUser(c *gin.Context) {
 	var p models.ParamsBanUser
 	if err := c.ShouldBindJSON(&p); err != nil {

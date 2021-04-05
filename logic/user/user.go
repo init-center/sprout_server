@@ -138,6 +138,79 @@ func AdminUpdateUser(p *models.ParamsAdminUpdateUser, u *models.UriUpdateUser) i
 
 }
 
+func UpdateUser(p *models.ParamsUpdateUser, uid string) int {
+
+	// check the user exist
+	exist, err := mysql.CheckUidExist(uid)
+	if err != nil {
+		zap.L().Error("check uid exist by id failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if !exist {
+		return code.CodeUserNotExist
+	}
+
+	user, err := mysql.GetUserPrivateInfo(uid)
+	if err != nil && err == sql.ErrNoRows {
+		return code.CodeUserNotExist
+	}
+
+	if err != nil {
+		return code.CodeServerBusy
+	}
+
+	eCode, err := redis.GetECode(user.Email)
+	if err == redis.Nil {
+		// no ecode or ecode expired
+		return code.CodeECodeExpired
+	} else if err != nil {
+		// db error
+		zap.L().Error("get ecode failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	// 5. check the ecode is equal
+	isECodeEqual := strings.EqualFold(eCode, p.ECode)
+	if !isECodeEqual {
+		return code.CodeIncorrectECode
+	}
+
+	if p.Password != nil && *p.Password != *p.RePassword {
+		return code.CodeInvalidParams
+	}
+
+	if err := mysql.UpdateUser(p, uid); err != nil {
+		zap.L().Error("update user failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	return code.CodeOK
+
+}
+
+func DeleteUser(uid string) int {
+
+	// check the user exist
+	exist, err := mysql.CheckUidExist(uid)
+	if err != nil {
+		zap.L().Error("check uid exist by id failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if !exist {
+		return code.CodeUserNotExist
+	}
+
+	if err := mysql.DeleteUser(uid); err != nil {
+		zap.L().Error("delete user failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	return code.CodeOK
+
+}
+
 func BanUser(p *models.ParamsBanUser, u *models.UriUpdateUser) int {
 
 	// check the user exist

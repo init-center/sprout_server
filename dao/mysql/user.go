@@ -95,6 +95,38 @@ func AdminUpdateUser(p *models.ParamsAdminUpdateUser, u *models.UriUpdateUser) (
 	return
 }
 
+func UpdateUser(p *models.ParamsUpdateUser, uid string) (err error) {
+	sqlStr := `
+	UPDATE t_user u SET 
+	u.name = IFNULL(?, u.name), 
+	u.avatar = IFNULL(?, u.avatar),
+	u.password = IFNULL(?, u.password),
+	u.email = IFNULL(?, u.email),
+	u.tel = IFNULL(?, u.tel),
+	u.birthday = IFNULL(?, u.birthday),
+	u.intro = IFNULL(?, u.intro) 
+	WHERE u.uid = ?`
+
+	_, err = db.Exec(sqlStr, p.Name, p.Avatar, p.Password, p.Email, p.Tel, p.Birthday, p.Intro, uid)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func DeleteUser(uid string) (err error) {
+	sqlStr := `
+	UPDATE t_user u SET 
+	u.delete_time = NOW() 
+	WHERE u.uid = ?`
+
+	_, err = db.Exec(sqlStr, uid)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func BanUser(p *models.ParamsBanUser, u *models.UriUpdateUser) (err error) {
 	userBanExistSql := `SELECT COUNT(id) FROM t_user_ban WHERE uid = ?`
 	var count uint8
@@ -143,7 +175,8 @@ func GetUserPublicInfo(uid string) (userInfo models.UserPublicInfo, err error) {
 	FROM t_user u 
 	LEFT JOIN t_user_ban ub 
 	ON u.uid = ub.uid 
-	WHERE u.uid = ?
+	WHERE u.uid = ? 
+	AND u.delete_time IS NULL 
 	`
 
 	err = db.Get(&userInfo, sqlStr, uid)
@@ -172,7 +205,8 @@ func GetUserPrivateInfo(uid string) (userInfo models.UserPrivateInfo, err error)
 	FROM t_user u 
 	LEFT JOIN t_user_ban ub 
 	ON u.uid = ub.uid 
-	WHERE u.uid = ?
+	WHERE u.uid = ? 
+	AND u.delete_time IS NULL 
 	`
 
 	err = db.Get(&userInfo, sqlStr, uid)

@@ -34,7 +34,9 @@ func Setup() (*gin.Engine, error) {
 		userController := &controller.UserController{}
 		user.POST("", userController.SignUp)
 		user.GET("/public/:uid", userController.GetPublicUserInfo)
-		user.GET("", middlewares.JwtAuth(), userController.GetPrivateUserInfo)
+		user.GET("/private", middlewares.JwtAuth(), userController.GetPrivateUserInfo)
+		user.PUT("", middlewares.JwtAuth(), userController.UpdateUser)
+		user.DELETE("", middlewares.JwtAuth(), userController.DeleteUser)
 
 	}
 
