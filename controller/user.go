@@ -114,6 +114,18 @@ func (u *UserController) UpdateUser(c *gin.Context) {
 
 }
 
+func (u *UserController) UpdatePassword(c *gin.Context) {
+	var p models.ParamsUpdatePassword
+	if err := c.ShouldBindJSON(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+
+	statusCode := user.UpdatePassword(&p)
+	response.Send(c, statusCode)
+
+}
+
 func (u *UserController) DeleteUser(c *gin.Context) {
 	var uid, exists = c.Get(constants.CtxUidKey)
 	if !exists {

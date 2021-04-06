@@ -69,6 +69,13 @@ func Login(p *models.ParamsSignIn) (models.User, error) {
 }
 
 func AdminUpdateUser(p *models.ParamsAdminUpdateUser, u *models.UriUpdateUser) (err error) {
+	if p.Password != nil {
+		password, err := pwd.Encrypt(*p.Password)
+		if err != nil {
+			return err
+		}
+		p.Password = &password
+	}
 	sqlStr := `
 	UPDATE t_user u SET 
 	u.delete_time = CASE ? WHEN NULL THEN u.delete_time 
@@ -96,6 +103,13 @@ func AdminUpdateUser(p *models.ParamsAdminUpdateUser, u *models.UriUpdateUser) (
 }
 
 func UpdateUser(p *models.ParamsUpdateUser, uid string) (err error) {
+	if p.Password != nil {
+		password, err := pwd.Encrypt(*p.Password)
+		if err != nil {
+			return err
+		}
+		p.Password = &password
+	}
 	sqlStr := `
 	UPDATE t_user u SET 
 	u.name = IFNULL(?, u.name), 
@@ -111,6 +125,20 @@ func UpdateUser(p *models.ParamsUpdateUser, uid string) (err error) {
 	if err != nil {
 		return
 	}
+	return
+}
+
+func UpdatePassword(p *models.ParamsUpdatePassword) (err error) {
+
+	p.Password, err = pwd.Encrypt(p.Password)
+
+	sqlStr := `
+	UPDATE t_user u SET 
+	u.password = ? 
+	WHERE u.email = ?`
+
+	_, err = db.Exec(sqlStr, p.Password, p.Email)
+
 	return
 }
 

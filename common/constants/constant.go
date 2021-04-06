@@ -28,11 +28,13 @@ const (
 const (
 	EcodeSignUpType = iota + 1
 	EcodeUpdateUserType
+	EcodeUpdatePassword
 )
 
 var EcodeTypeNameMap = map[int]string{
 	EcodeSignUpType:     "注册",
 	EcodeUpdateUserType: "修改用户信息",
+	EcodeUpdatePassword: "修改密码",
 }
 
 const ShouldReplyCommentChildLimit = 5

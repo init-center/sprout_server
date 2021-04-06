@@ -146,6 +146,13 @@ type ParamsUpdateUser struct {
 	RePassword *string `json:"rePassword" binding:"omitempty,eqfield=Password,min=6,max=16,checkPwd"`
 }
 
+type ParamsUpdatePassword struct {
+	ECode      string `json:"eCode" binding:"required"`
+	Email      string `json:"email" binding:"required,email"`
+	Password   string `json:"password" binding:"required,min=6,max=16,checkPwd"`
+	RePassword string `json:"rePassword" binding:"required,eqfield=Password,min=6,max=16,checkPwd"`
+}
+
 type ParamsAdminUpdateUser struct {
 	*BaseParamsUpdateUser
 	Password *string `json:"password" binding:"omitempty,min=6,max=16,checkPwd"`

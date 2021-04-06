@@ -9,6 +9,7 @@ const (
 	CodeUserIdExist
 	CodeUserNameExist
 	CodeEmailExist
+	CodeEmailNotExist
 	CodeUserNotExist
 	CodeInvalidPassword
 	CodeServerBusy
@@ -44,6 +45,7 @@ var MessageMap = map[int]string{
 	CodeUserIdExist:      "ID已被使用",
 	CodeUserNameExist:    "用户名已被使用",
 	CodeEmailExist:       "Email已被使用",
+	CodeEmailNotExist:    "Email未注册",
 	CodeUserNotExist:     "用户不存在",
 	CodeInvalidPassword:  "用户名或密码错误",
 	CodeServerBusy:       "服务器繁忙",
@@ -81,6 +83,7 @@ var HCodeMap = map[int]int{
 	CodeUserIdExist:      http.StatusConflict,
 	CodeUserNameExist:    http.StatusConflict,
 	CodeEmailExist:       http.StatusConflict,
+	CodeEmailNotExist:    http.StatusNotFound,
 	CodeUserNotExist:     http.StatusNotFound,
 	CodeInvalidPassword:  http.StatusUnauthorized,
 	CodeServerBusy:       http.StatusInternalServerError,

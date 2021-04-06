@@ -189,6 +189,44 @@ func UpdateUser(p *models.ParamsUpdateUser, uid string) int {
 
 }
 
+func UpdatePassword(p *models.ParamsUpdatePassword) int {
+
+	// check the email exist
+	exist, err := mysql.CheckEmailExist(p.Email)
+	if err != nil {
+		zap.L().Error("check email exist failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if !exist {
+		return code.CodeEmailNotExist
+	}
+
+	eCode, err := redis.GetECode(p.Email)
+	if err == redis.Nil {
+		// no ecode or ecode expired
+		return code.CodeECodeExpired
+	} else if err != nil {
+		// db error
+		zap.L().Error("get ecode failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	// 5. check the ecode is equal
+	isECodeEqual := strings.EqualFold(eCode, p.ECode)
+	if !isECodeEqual {
+		return code.CodeIncorrectECode
+	}
+
+	if err := mysql.UpdatePassword(p); err != nil {
+		zap.L().Error("update user password failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	return code.CodeOK
+
+}
+
 func DeleteUser(uid string) int {
 
 	// check the user exist
