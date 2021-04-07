@@ -80,6 +80,22 @@ func (u *UserController) AdminGetUsers(c *gin.Context) {
 
 }
 
+func (u *UserController) GetBanTime(c *gin.Context) {
+	var p models.UriGetBanTime
+	if err := c.ShouldBindQuery(&p); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+	banTime, statusCode := user.GetBanTime(p.Uid)
+
+	if statusCode != code.CodeOK {
+		response.Send(c, statusCode)
+		return
+	}
+	response.SendWithData(c, statusCode, banTime)
+
+}
+
 func (u *UserController) AdminUpdateUser(c *gin.Context) {
 	var p models.ParamsAdminUpdateUser
 	if err := c.ShouldBindJSON(&p); err != nil {

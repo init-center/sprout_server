@@ -36,6 +36,7 @@ const (
 	CodeConfigKeyNotExist
 	CodeFriendExist
 	CodeFriendNotExist
+	CodeUserIsBaned
 )
 
 var MessageMap = map[int]string{
@@ -73,6 +74,7 @@ var MessageMap = map[int]string{
 	CodeConfigKeyNotExist:    "配置名不存在",
 	CodeFriendExist:          "友链已存在",
 	CodeFriendNotExist:       "友链不存在",
+	CodeUserIsBaned:          "用户已被封禁",
 }
 
 // Error code mapping HTTP status code
@@ -111,6 +113,7 @@ var HCodeMap = map[int]int{
 	CodeConfigKeyNotExist:    http.StatusNotFound,
 	CodeFriendExist:          http.StatusConflict,
 	CodeFriendNotExist:       http.StatusNotFound,
+	CodeUserIsBaned:          http.StatusForbidden,
 }
 
 func Msg(code int) string {

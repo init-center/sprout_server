@@ -212,6 +212,45 @@ func GetUserPublicInfo(uid string) (userInfo models.UserPublicInfo, err error) {
 	return
 }
 
+func CheckUserBanStatus(uid string) (isBaned bool, err error) {
+	sqlStr := `
+	SELECT 
+	IFNULL(ub.end_time > NOW(), 0) AS is_baned 
+	FROM t_user u 
+	LEFT JOIN t_user_ban ub 
+	ON u.uid = ub.uid 
+	WHERE u.uid = ? 
+	AND u.delete_time IS NULL`
+	var result int8
+	err = db.Get(&result, sqlStr, uid)
+	if err != nil {
+		return
+	}
+	if result == 0 {
+		return false, nil
+	} else if result == 1 {
+		return true, nil
+	}
+	return
+
+}
+
+func GetBanTime(uid string) (banTime models.BanTime, err error) {
+	sqlStr := `
+	SELECT 
+	ub.start_time AS ban_start_time,
+	ub.end_time AS ban_end_time 
+	FROM t_user u 
+	LEFT JOIN t_user_ban ub 
+	ON u.uid = ub.uid 
+	WHERE u.uid = ? 
+	AND u.delete_time IS NULL`
+	err = db.Get(&banTime, sqlStr, uid)
+
+	return
+
+}
+
 func GetUserPrivateInfo(uid string) (userInfo models.UserPrivateInfo, err error) {
 	sqlStr := `
 	SELECT 

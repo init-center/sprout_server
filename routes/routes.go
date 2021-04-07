@@ -38,6 +38,7 @@ func Setup() (*gin.Engine, error) {
 		user.PUT("", middlewares.JwtAuth(), userController.UpdateUser)
 		user.DELETE("", middlewares.JwtAuth(), userController.DeleteUser)
 		user.PUT("/password", userController.UpdatePassword)
+		user.GET("/ban_time/:uid", userController.GetBanTime)
 
 	}
 

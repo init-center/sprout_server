@@ -116,6 +116,25 @@ func AdminGetUsers(p *queryfields.UserQueryFields) (models.UserDetailList, int) 
 	return users, code.CodeOK
 }
 
+func GetBanTime(uid string) (models.BanTime, int) {
+	// check the user exist
+	exist, err := mysql.CheckUidExist(uid)
+	if err != nil {
+		zap.L().Error("check uid exist by id failed", zap.Error(err))
+		return models.BanTime{}, code.CodeServerBusy
+	}
+	if !exist {
+		return models.BanTime{}, code.CodeUserNotExist
+	}
+	banTime, err := mysql.GetBanTime(uid)
+	if err != nil && err != sql.ErrNoRows {
+		zap.L().Error(" get ban time failed", zap.Error(err))
+		return banTime, code.CodeServerBusy
+	}
+
+	return banTime, code.CodeOK
+}
+
 func AdminUpdateUser(p *models.ParamsAdminUpdateUser, u *models.UriUpdateUser) int {
 
 	// check the user exist

@@ -40,3 +40,8 @@ type UserDetailList struct {
 	Page Page                `json:"page"`
 	List []UserDetailByAdmin `json:"list"`
 }
+
+type BanTime struct {
+	BanStartTime *time.Time `db:"ban_start_time" json:"banStartTime"`
+	BanEndTime   *time.Time `db:"ban_end_time" json:"banEndTime"`
+}

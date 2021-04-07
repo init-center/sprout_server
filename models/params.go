@@ -128,6 +128,7 @@ type UriUpdateUser struct {
 }
 
 type UriGetUserInfo = UriUpdateUser
+type UriGetBanTime = UriUpdateUser
 
 type BaseParamsUpdateUser struct {
 	Name     *string `json:"name" binding:"omitempty,ne=admin,checkName"`

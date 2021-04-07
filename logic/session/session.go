@@ -11,7 +11,14 @@ import (
 )
 
 func Create(p *models.ParamsSignIn) (string, int) {
+	isBaned, err := mysql.CheckUserBanStatus(p.Uid)
+	if err != nil {
+		return "", code.CodeServerBusy
+	}
 
+	if isBaned {
+		return "", code.CodeUserIsBaned
+	}
 	u, err := mysql.Login(p)
 	if err == sql.ErrNoRows {
 		return "", code.CodeInvalidPassword
