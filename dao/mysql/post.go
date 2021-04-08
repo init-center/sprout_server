@@ -516,7 +516,13 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 		sqlStr += `LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
 	}
 
-	sqlStr += ` WHERE pc.display = 1 AND p.delete_time IS NULL AND pc.top_time IS NULL `
+	// if the first page does not get top, subsequent requests still get it
+	sqlStr += ` WHERE pc.display = 1 AND p.delete_time IS NULL `
+
+	// if the first page get top, subsequent requests dont get it
+	if qs.FirstPageGetTop == 1 {
+		sqlStr += ` AND pc.top_time IS NULL `
+	}
 
 	sqlStr = concatPostListSql(sqlStr, qs)
 
