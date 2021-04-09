@@ -18,7 +18,13 @@ func Setup() (*gin.Engine, error) {
 		return r, err
 	}
 	r.Use(logger.GinLogger(), logger.GinRecovery(true), cors.New(cors.Config{
-		AllowOrigins:     []string{"https://init.center", "http://init.center", "http://localhost:3000", "http://localhost:3001"},
+		AllowOrigins: []string{
+			"https://init.center",
+			"http://init.center",
+			"https://blog.init.center",
+			"http://blog.init.center",
+			"http://localhost:3000",
+			"http://localhost:3001"},
 		AllowMethods:     []string{"GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"},
 		AllowHeaders:     []string{"content-type", "Authorization"},
 		ExposeHeaders:    []string{"Authorization"},
@@ -90,7 +96,8 @@ func Setup() (*gin.Engine, error) {
 		post.POST("", middlewares.JwtAuth(), middlewares.AdminAuth(), postController.Create)
 		post.PUT("/:pid", middlewares.JwtAuth(), middlewares.AdminAuth(), postController.Update)
 		post.GET("", postController.GetPostList)
-		post.GET("/:pid", postController.GetPostDetail)
+		post.GET("/detail", postController.GetPostDetailList)
+		post.GET("/detail/:pid", postController.GetPostDetail)
 	}
 
 	top := r.Group("/top")

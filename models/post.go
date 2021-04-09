@@ -46,3 +46,9 @@ type PostList struct {
 	List   []PostListItem         `json:"list"`
 	Search QueryStringGetPostList `json:"search"`
 }
+
+type PostDetailList struct {
+	Page   Page                   `json:"page"`
+	List   []PostDetail           `json:"list"`
+	Search QueryStringGetPostList `json:"search"`
+}

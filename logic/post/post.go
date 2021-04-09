@@ -111,6 +111,16 @@ func GetList(qs *models.QueryStringGetPostList) (models.PostList, int) {
 	return posts, code.CodeOK
 }
 
+func GetDetailList(qs *models.QueryStringGetPostList) (models.PostDetailList, int) {
+	posts, err := mysql.GetPostDetailList(qs)
+	if err != nil && err != sql.ErrNoRows {
+		zap.L().Error("get post detail list failed", zap.Error(err))
+		return posts, code.CodeServerBusy
+	}
+
+	return posts, code.CodeOK
+}
+
 func GetListByAdmin(queryFields *queryfields.PostQueryFields) (models.PostListByAdmin, int) {
 	posts, err := mysql.GetPostListByAdmin(queryFields)
 	if err != nil && err != sql.ErrNoRows {

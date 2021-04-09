@@ -68,6 +68,22 @@ func (pc *PostController) GetPostList(c *gin.Context) {
 	response.SendWithData(c, statusCode, posts)
 }
 
+func (pc *PostController) GetPostDetailList(c *gin.Context) {
+	var qs models.QueryStringGetPostList
+	if err := c.ShouldBindQuery(&qs); err != nil {
+		response.Send(c, code.CodeInvalidParams)
+		return
+	}
+	posts, statusCode := post.GetDetailList(&qs)
+
+	if statusCode != code.CodeOK {
+		response.Send(c, statusCode)
+		return
+	}
+
+	response.SendWithData(c, statusCode, posts)
+}
+
 func (pc *PostController) GetTopPost(c *gin.Context) {
 	topPost, statusCode := post.GetTopPost()
 

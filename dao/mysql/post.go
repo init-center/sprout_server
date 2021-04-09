@@ -491,6 +491,58 @@ func GetTopPost(qs *models.QueryStringGetPostList) (topPost models.PostListItem,
 	return
 }
 
+func GetTopPostDetail(qs *models.QueryStringGetPostList) (topPost models.PostDetail, err error) {
+	sqlStr := `
+	SELECT 
+    p.uid, 
+    p.cover, 
+    p.title, 
+    p.summary, 
+	p.bgm,
+	p.content,
+	pc.comment_open,
+	p.update_time,
+    p.category, 
+	c.name AS category_name,
+	pv.views,
+    p.create_time, 
+    pc.top_time, 
+    p.create_time 
+	FROM t_post p 
+	LEFT JOIN t_post_config pc 
+	ON p.pid = pc.pid 
+	LEFT JOIN t_post_views pv 
+	ON pc.pid = pv.pid 
+	LEFT JOIN t_post_category c 
+	ON p.category = c.id `
+	if qs.Tag != 0 || qs.TagName != "" {
+		sqlStr += ` LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
+	}
+	sqlStr += `WHERE pc.display = 1 
+	AND p.delete_time IS NULL 
+	AND pc.top_time IS NOT NULL `
+
+	sqlStr = concatPostListSql(sqlStr, qs)
+
+	sqlStr += `LIMIT 1`
+
+	err = db.Get(&topPost, sqlStr, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword)
+	if err != nil {
+		return
+	}
+	topPost.Tags, err = GetTagsByPid(topPost.Pid)
+	if err != nil {
+		return
+	}
+
+	// get favorites
+	topPost.Favorites, err = GetPostFavoriteCount(topPost.Pid)
+
+	topPost.CommentCount, err = GetPostCommentCount(topPost.Pid)
+
+	return
+}
+
 func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, err error) {
 	sqlStr := `
 	SELECT 
@@ -595,6 +647,123 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 		if err != nil {
 			return
 		}
+	}
+
+	postList.Search = *qs
+
+	return
+}
+
+func GetPostDetailList(qs *models.QueryStringGetPostList) (postList models.PostDetailList, err error) {
+	sqlStr := `
+	SELECT 
+    DISTINCT p.pid,
+    p.uid, 
+    p.cover, 
+    p.title, 
+    p.summary, 
+	p.bgm,
+	p.content,
+	pc.comment_open,
+	p.update_time,
+    p.category, 
+	c.name AS category_name,
+	pv.views,
+    p.create_time, 
+    pc.top_time, 
+    p.create_time 
+	FROM t_post p 
+	LEFT JOIN t_post_config pc 
+	ON p.pid = pc.pid 
+	LEFT JOIN t_post_views pv 
+	ON pc.pid = pv.pid 
+	LEFT JOIN t_post_category c 
+	ON p.category = c.id `
+
+	if qs.Tag != 0 || qs.TagName != "" {
+		sqlStr += `LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
+	}
+
+	// if the first page does not get top, subsequent requests still get it
+	sqlStr += ` WHERE pc.display = 1 AND p.delete_time IS NULL `
+
+	// if the first page get top, subsequent requests dont get it
+	if qs.FirstPageGetTop == 1 {
+		sqlStr += ` AND pc.top_time IS NULL `
+	}
+
+	sqlStr = concatPostListSql(sqlStr, qs)
+
+	sqlStr += ` ORDER BY p.create_time DESC `
+
+	var limit = qs.Limit
+
+	var offset = (qs.Page - 1) * limit
+
+	if qs.Page == 1 && qs.FirstPageGetTop == 1 {
+		// if the page is 1 , get the top post
+		var topPost models.PostDetail
+		topPost, err = GetTopPostDetail(qs)
+		if err != nil && err != sql.ErrNoRows {
+			return
+		}
+		if err == nil {
+			postList.List = append(postList.List, topPost)
+		}
+	}
+
+	if qs.Limit != 0 && qs.Page != 0 {
+		sqlStr += ` LIMIT ? OFFSET ?`
+		err = db.Select(&postList.List, sqlStr, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword, limit, offset)
+	} else {
+		err = db.Select(&postList.List, sqlStr, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword)
+	}
+
+	// get post count
+	postCountSql := `
+	SELECT COUNT(DISTINCT p.id) 
+	FROM t_post p 
+	LEFT JOIN t_post_config pc 
+	ON p.pid = pc.pid 
+	LEFT JOIN t_post_views pv 
+	ON pc.pid = pv.pid 
+	LEFT JOIN t_post_category c 
+	ON p.category = c.id `
+
+	if qs.Tag != 0 || qs.TagName != "" {
+		postCountSql += `LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
+	}
+
+	postCountSql += ` WHERE pc.display = 1 AND p.delete_time IS NULL `
+
+	postCountSql = concatPostListSql(postCountSql, qs)
+
+	err = db.Get(&postList.Page.Count, postCountSql, qs.Category, qs.Tag, qs.CategoryName, qs.TagName, qs.Keyword, qs.Keyword)
+
+	if len(postList.List) == 0 {
+		postList.List = make([]models.PostDetail, 0, 0)
+		return
+	}
+
+	postList.Page.CurrentPage = qs.Page
+	postList.Page.Size = qs.Limit
+
+	// get tags
+	for i := range postList.List {
+		postList.List[i].Tags, err = GetTagsByPid(postList.List[i].Pid)
+		if err != nil {
+			return
+		}
+
+		// get favorites
+		postList.List[i].Favorites, err = GetPostFavoriteCount(postList.List[i].Pid)
+
+		// get commentCount
+		postList.List[i].CommentCount, err = GetPostCommentCount(postList.List[i].Pid)
+		if err != nil {
+			return
+		}
+
 	}
 
 	postList.Search = *qs
