@@ -273,6 +273,7 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 	SELECT 
     DISTINCT p.pid, 
     p.uid, 
+	u.name AS user_name, 
     p.cover, 
     p.title, 
     p.summary, 
@@ -293,7 +294,9 @@ func GetPostListByAdmin(queryFields *queryfields.PostQueryFields) (postList mode
 	LEFT JOIN t_post_views pv 
 	ON pc.pid = pv.pid 
 	LEFT JOIN t_post_category c 
-	ON p.category = c.id `
+	ON p.category = c.id 
+	LEFT JOIN t_user u 
+	ON p.uid = u.uid `
 
 	if queryFields.Tag != 0 || queryFields.TagName != "" {
 		sqlStr += `LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
@@ -448,6 +451,7 @@ func GetTopPost(qs *models.QueryStringGetPostList) (topPost models.PostListItem,
 	SELECT 
     p.pid, 
     p.uid, 
+	u.name AS user_name, 
     p.cover, 
     p.title, 
     p.summary, 
@@ -462,7 +466,9 @@ func GetTopPost(qs *models.QueryStringGetPostList) (topPost models.PostListItem,
 	LEFT JOIN t_post_views pv 
 	ON pc.pid = pv.pid 
 	LEFT JOIN t_post_category c 
-	ON p.category = c.id `
+	ON p.category = c.id 
+	LEFT JOIN t_user u 
+	ON p.uid = u.uid `
 	if qs.Tag != 0 || qs.TagName != "" {
 		sqlStr += ` LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
 	}
@@ -495,6 +501,7 @@ func GetTopPostDetail(qs *models.QueryStringGetPostList) (topPost models.PostDet
 	sqlStr := `
 	SELECT 
     p.uid, 
+	u.name AS user_name, 
     p.cover, 
     p.title, 
     p.summary, 
@@ -514,7 +521,9 @@ func GetTopPostDetail(qs *models.QueryStringGetPostList) (topPost models.PostDet
 	LEFT JOIN t_post_views pv 
 	ON pc.pid = pv.pid 
 	LEFT JOIN t_post_category c 
-	ON p.category = c.id `
+	ON p.category = c.id 
+	LEFT JOIN t_user u 
+	ON p.uid = u.uid `
 	if qs.Tag != 0 || qs.TagName != "" {
 		sqlStr += ` LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
 	}
@@ -548,6 +557,7 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 	SELECT 
     DISTINCT p.pid, 
     p.uid, 
+	u.name AS user_name, 
     p.cover, 
     p.title, 
     p.summary, 
@@ -562,7 +572,9 @@ func GetPostList(qs *models.QueryStringGetPostList) (postList models.PostList, e
 	LEFT JOIN t_post_views pv 
 	ON pc.pid = pv.pid 
 	LEFT JOIN t_post_category c 
-	ON p.category = c.id `
+	ON p.category = c.id 
+	LEFT JOIN t_user u 
+	ON p.uid = u.uid `
 
 	if qs.Tag != 0 || qs.TagName != "" {
 		sqlStr += `LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
@@ -659,6 +671,7 @@ func GetPostDetailList(qs *models.QueryStringGetPostList) (postList models.PostD
 	SELECT 
     DISTINCT p.pid,
     p.uid, 
+	u.name AS user_name, 
     p.cover, 
     p.title, 
     p.summary, 
@@ -678,7 +691,9 @@ func GetPostDetailList(qs *models.QueryStringGetPostList) (postList models.PostD
 	LEFT JOIN t_post_views pv 
 	ON pc.pid = pv.pid 
 	LEFT JOIN t_post_category c 
-	ON p.category = c.id `
+	ON p.category = c.id 
+	LEFT JOIN t_user u 
+	ON p.uid = u.uid `
 
 	if qs.Tag != 0 || qs.TagName != "" {
 		sqlStr += `LEFT JOIN t_post_tag_relation ptr ON p.pid = ptr.pid LEFT JOIN t_post_tag pt ON ptr.tid = pt.id `
@@ -811,6 +826,7 @@ func GetPostDetail(p *models.UriGetPostDetail) (post models.PostDetail, err erro
 	SELECT 
     p.pid, 
     p.uid, 
+    u.name AS user_name, 
     p.cover, 
     p.title, 
     p.summary, 
@@ -831,6 +847,8 @@ func GetPostDetail(p *models.UriGetPostDetail) (post models.PostDetail, err erro
 	ON pc.pid = pv.pid 
 	LEFT JOIN t_post_category c 
 	ON p.category = c.id 
+	LEFT JOIN t_user u 
+	ON p.uid = u.uid 
 	WHERE p.pid = ?
 	AND pc.display = 1
 	AND p.delete_time IS NULL`
@@ -871,6 +889,7 @@ func GetPostDetailByAdmin(p *models.UriGetPostDetail) (post models.PostItemByAdm
 	SELECT 
     p.pid, 
     p.uid, 
+    u.name AS user_name, 
     p.cover, 
     p.title, 
     p.summary, 
@@ -893,6 +912,8 @@ func GetPostDetailByAdmin(p *models.UriGetPostDetail) (post models.PostItemByAdm
 	ON pc.pid = pv.pid 
 	LEFT JOIN t_post_category c 
 	ON p.category = c.id 
+	LEFT JOIN t_user u 
+	ON p.uid = u.uid 
 	WHERE p.pid = ?`
 
 	err = db.Get(&post, sqlStr, p.Pid)

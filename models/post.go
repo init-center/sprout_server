@@ -7,6 +7,7 @@ import (
 
 type PostListItem struct {
 	Uid          string     `json:"uid" db:"uid"`
+	UserName     string     `json:"userName" db:"user_name"`
 	Pid          uint64     `json:"pid,string" db:"pid"`
 	CategoryId   uint64     `json:"categoryId" db:"category"`
 	CategoryName string     `json:"categoryName" db:"category_name"`
