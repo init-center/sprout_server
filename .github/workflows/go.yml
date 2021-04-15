@@ -27,4 +27,4 @@ jobs:
           host: ${{ secrets.ALIYUN_HOST }}
           username: ${{ secrets.ALIYUN_USER }}
           key: ${{ secrets.ALIYUN_SECRET_KEY }}
-          script: cd /opt/sprout_server && docker-compose build --no-cache && docker-compose up -d
+          script: cd /opt/sprout_server && echo '${{secrets.APP_CONFIGS}}' > /opt/sprout_server/config.yaml && docker-compose build --no-cache && docker-compose up -d
