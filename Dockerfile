@@ -19,4 +19,4 @@ RUN go build
 
 EXPOSE 8081
 
-CMD ["sprout_server"]
+CMD ["/opt/sprout_server"]
