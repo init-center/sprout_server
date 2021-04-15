@@ -2,6 +2,7 @@ version: "3.3"
 
 services:
   sprout_server:
+    container_name: sprout_server
     ports:
       - 8081:8081
     build:
