@@ -1,0 +1,13 @@
+version: "3.3"
+
+services:
+  sprout:
+    ports:
+      - 8081:8081
+    build:
+      context: ./
+      dockerfile: Dockerfile
+networks:
+  default:
+    external:
+      name: mybridge
