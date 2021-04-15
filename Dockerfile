@@ -17,4 +17,4 @@ RUN go build -o sprout_server .
 
 EXPOSE 8081
 
-ENTRYPOINT ["sh", "./sprout_server"]
+ENTRYPOINT ["./sprout_server"]
