@@ -19,4 +19,4 @@ RUN go build -o sprout_server .
 
 EXPOSE 8081
 
-ENTRYPOINT ["/opt/sprout_server"]
+ENTRYPOINT ["bash", "/opt/sprout_server"]
