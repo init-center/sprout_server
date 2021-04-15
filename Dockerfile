@@ -14,7 +14,7 @@ COPY go.sum /opt/sprout_server/
 RUN go mod download
 
 COPY . /opt/sprout_server
-COPY /opt/files/sprout_server_config/config.yaml /opt/sprout_server/config.yaml
+COPY ../files/sprout_server_config/config.yaml /opt/sprout_server/config.yaml
 RUN go build -o sprout_server .
 
 EXPOSE 8081
