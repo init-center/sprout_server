@@ -15,8 +15,8 @@ RUN go mod download
 
 COPY . /opt/sprout_server
 
-RUN go build
+RUN go build -o sprout_server .
 
 EXPOSE 8081
 
-CMD ["/opt/sprout_server"]
+ENTRYPOINT ["/opt/sprout_server"]
