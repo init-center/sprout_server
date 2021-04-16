@@ -21,7 +21,11 @@ func Setup() (*gin.Engine, error) {
 		AllowOrigins: []string{
 			"https://init.center",
 			"http://init.center",
+			"https://admin.init.center",
+			"http://admin.init.center",
 			"https://blog.init.center",
+			"http://admin.blog.init.center",
+			"https://admin.blog.init.center",
 			"http://blog.init.center",
 			"http://localhost:3000",
 			"http://localhost:3001"},
