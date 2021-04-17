@@ -83,7 +83,7 @@ func GetPostAnalysis() (postAnalysis models.PostAnalysisData, err error) {
 		return
 	}
 
-	MonthAverageSql := `SELECT ROUND(AVG(a.count)) AS average FROM (SELECT COUNT(id) AS count FROM t_post GROUP BY MONTH(create_time)) a`
+	MonthAverageSql := `SELECT IFNULL(ROUND(AVG(a.count)), 0) AS average FROM (SELECT COUNT(id) AS count FROM t_post GROUP BY MONTH(create_time)) a`
 
 	err = db.Get(&postAnalysis.Average, MonthAverageSql)
 	if err != nil {

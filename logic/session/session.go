@@ -11,6 +11,22 @@ import (
 )
 
 func Create(p *models.ParamsSignIn) (string, int) {
+	isUser, err := mysql.CheckUidExist(p.Uid)
+	if err != nil {
+		return "", code.CodeServerBusy
+	}
+
+	if !isUser {
+		isUser, err = mysql.CheckEmailExist(p.Uid)
+		if err != nil {
+			return "", code.CodeServerBusy
+		}
+	}
+
+	if !isUser {
+		return "", code.CodeUserNotExist
+	}
+
 	isBaned, err := mysql.CheckUserBanStatus(p.Uid)
 	if err != nil {
 		return "", code.CodeServerBusy
