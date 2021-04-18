@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"fmt"
-	"net/url"
 	"sprout_server/settings"
 
 	"go.uber.org/zap"
@@ -19,8 +18,7 @@ func Init(cfg *settings.MySQLConfig) (err error) {
 
 	// go sql driver default timezone is utc
 	// use parseTime=True&loc=Local to set the local timezone
-	timezone := "'Asia/Shanghai'"
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local&time_zone="+url.QueryEscape(timezone),
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Asia/Shanghai",
 		cfg.User,
 		cfg.Password,
 		cfg.Host,
