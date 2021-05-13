@@ -13,6 +13,17 @@ import (
 )
 
 func CreatePostComment(p *models.ParamsAddComment, ip string, os string, engine string, browser string) int {
+	// check user ban status
+	isBaned, err := mysql.CheckUserBanStatus(p.Uid)
+	if err != nil {
+		zap.L().Error("check user ban status failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if isBaned {
+		return code.CodeUserIsBaned
+	}
+
 	// check the post exist
 	exist, err := mysql.CheckPostExistById(p.Pid)
 	if err != nil {

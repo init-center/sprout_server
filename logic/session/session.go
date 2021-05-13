@@ -13,12 +13,14 @@ import (
 func Create(p *models.ParamsSignIn) (string, int) {
 	isUser, err := mysql.CheckUidExist(p.Uid)
 	if err != nil {
+		zap.L().Error("check uid failed", zap.Error(err))
 		return "", code.CodeServerBusy
 	}
 
 	if !isUser {
 		isUser, err = mysql.CheckEmailExist(p.Uid)
 		if err != nil {
+			zap.L().Error("check email failed", zap.Error(err))
 			return "", code.CodeServerBusy
 		}
 	}
@@ -29,6 +31,7 @@ func Create(p *models.ParamsSignIn) (string, int) {
 
 	isBaned, err := mysql.CheckUserBanStatus(p.Uid)
 	if err != nil {
+		zap.L().Error("check user ban status failed", zap.Error(err))
 		return "", code.CodeServerBusy
 	}
 

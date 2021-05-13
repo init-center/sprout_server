@@ -170,6 +170,17 @@ func UpdateUser(p *models.ParamsUpdateUser, uid string) int {
 		return code.CodeUserNotExist
 	}
 
+	// check ban status
+	isBaned, err := mysql.CheckUserBanStatus(uid)
+	if err != nil {
+		zap.L().Error("check user ban status failed", zap.Error(err))
+		return code.CodeServerBusy
+	}
+
+	if isBaned {
+		return code.CodeUserIsBaned
+	}
+
 	user, err := mysql.GetUserPrivateInfo(uid)
 	if err != nil && err == sql.ErrNoRows {
 		return code.CodeUserNotExist

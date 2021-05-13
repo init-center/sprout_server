@@ -10,7 +10,7 @@ import (
 )
 
 func CheckUidExist(uid string) (bool, error) {
-	sqlStr := `SELECT count(uid) FROM t_user WHERE uid = ?`
+	sqlStr := `SELECT COUNT(uid) FROM t_user WHERE uid = ?`
 	var count int
 	if err := db.Get(&count, sqlStr, uid); err != nil {
 		return false, err
@@ -19,7 +19,7 @@ func CheckUidExist(uid string) (bool, error) {
 }
 
 func CheckUserNameExist(userName string) (bool, error) {
-	sqlStr := `SELECT count(name) FROM t_user WHERE name = ?`
+	sqlStr := `SELECT COUNT(uid) FROM t_user WHERE name = ?`
 	var count int
 	if err := db.Get(&count, sqlStr, userName); err != nil {
 		return false, err
@@ -28,7 +28,7 @@ func CheckUserNameExist(userName string) (bool, error) {
 }
 
 func CheckEmailExist(email string) (bool, error) {
-	sqlStr := `SELECT count(email) FROM t_user WHERE email = ?`
+	sqlStr := `SELECT COUNT(uid) FROM t_user WHERE email = ?`
 	var count int
 	if err := db.Get(&count, sqlStr, email); err != nil {
 		return false, err
@@ -156,6 +156,10 @@ func DeleteUser(uid string) (err error) {
 }
 
 func BanUser(p *models.ParamsBanUser, u *models.UriUpdateUser) (err error) {
+	userInfo, err := GetUserPrivateInfo(u.Uid)
+	if err != nil {
+		return
+	}
 	userBanExistSql := `SELECT COUNT(id) FROM t_user_ban WHERE uid = ?`
 	var count uint8
 	err = db.Get(&count, userBanExistSql, u.Uid)
@@ -163,11 +167,13 @@ func BanUser(p *models.ParamsBanUser, u *models.UriUpdateUser) (err error) {
 		return
 	}
 	if count == 0 {
-		_, err = db.Exec(`INSERT INTO t_user_ban(uid, start_time, end_time) VALUES(?, ?, ?)`, u.Uid, p.BanStartTime, p.BanEndTime)
+		_, err = db.Exec(`INSERT INTO t_user_ban(uid, email, start_time, end_time) VALUES(?, ?, ?, ?)`,
+			u.Uid, userInfo.Email, p.BanStartTime, p.BanEndTime)
 		return err
 	}
 
-	_, err = db.Exec(`UPDATE t_user_ban SET start_time = ?, end_time = ? WHERE uid = ?`, p.BanStartTime, p.BanEndTime, u.Uid)
+	_, err = db.Exec(`UPDATE t_user_ban SET start_time = ?, end_time = ?, email = ? WHERE uid = ?`,
+		p.BanStartTime, p.BanEndTime, userInfo.Email, u.Uid)
 	return err
 }
 
@@ -212,17 +218,17 @@ func GetUserPublicInfo(uid string) (userInfo models.UserPublicInfo, err error) {
 	return
 }
 
-func CheckUserBanStatus(uid string) (isBaned bool, err error) {
+func CheckUserBanStatus(uidOrEmail string) (isBaned bool, err error) {
 	sqlStr := `
 	SELECT 
 	IFNULL(ub.end_time > NOW(), 0) AS is_baned 
 	FROM t_user u 
 	LEFT JOIN t_user_ban ub 
 	ON u.uid = ub.uid 
-	WHERE u.uid = ? 
+	WHERE (u.uid = ? OR u.email = ?) 
 	AND u.delete_time IS NULL`
 	var result int8
-	err = db.Get(&result, sqlStr, uid)
+	err = db.Get(&result, sqlStr, uidOrEmail, uidOrEmail)
 	if err != nil {
 		return
 	}

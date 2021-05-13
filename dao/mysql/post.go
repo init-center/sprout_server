@@ -41,7 +41,7 @@ func CreatePost(p *models.ParamsAddPost, uid string) (err error) {
 		} else if p.IsTop == 0 {
 			_, err = tx.Exec(postConfigSqlStr, pid, p.IsDisplay, p.IsCommentOpen, nil)
 
-			// If there is no pinned post, set the first post as a pinned article
+			// If there is no pinned post, set the newest post as a pinned article
 			var tp TopPost
 
 			err = tx.Get(&tp, `SELECT top_time FROM t_post_config WHERE top_time IS NOT NULL LIMIT 1`)
@@ -57,7 +57,7 @@ func CreatePost(p *models.ParamsAddPost, uid string) (err error) {
 					SET pc.top_time = NOW() 
 					WHERE p.delete_time IS NULL 
 					AND pc.display = 1
-					AND p.id = (SELECT MIN(id) FROM t_post)`)
+					AND p.id = (SELECT MAX(id) FROM t_post)`)
 				if err != nil {
 					return
 				}

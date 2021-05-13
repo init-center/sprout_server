@@ -138,10 +138,12 @@ CREATE TABLE `t_post_favorite` (
 CREATE TABLE `t_user_ban` (
     `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增id',
     `uid` varchar(20) NOT NULL COMMENT '用户id',
+    `email` varchar(64) COMMENT '邮箱',
     `start_time` timestamp NULL COMMENT '封禁开始时间',
     `end_time` timestamp NULL COMMENT '封禁结束时间',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `idx_uid` (`uid`)
+    UNIQUE KEY `idx_uid` (`uid`),
+    UNIQUE KEY `idx_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户封禁表';
 
 #浏览记录表
