@@ -57,7 +57,7 @@ CREATE TABLE `t_post` (
     `cover` varchar(2083) NOT NULL COMMENT '封面地址',
     `bgm` varchar(2083) NOT NULL COMMENT '背景音乐地址',
     `summary` varchar(128) NOT NULL COMMENT '摘要',
-    `content` TEXT NOT NULL COMMENT '文章内容',
+    `content` MEDIUMTEXT NOT NULL COMMENT '文章内容',
     `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发表时间',
     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `delete_time` timestamp NULL DEFAULT NULL COMMENT '删除时间',

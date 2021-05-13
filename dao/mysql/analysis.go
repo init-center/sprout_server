@@ -83,20 +83,20 @@ func GetPostAnalysis() (postAnalysis models.PostAnalysisData, err error) {
 		return
 	}
 
-	MonthAverageSql := `SELECT IFNULL(ROUND(AVG(a.count)), 0) AS average FROM (SELECT COUNT(id) AS count FROM t_post GROUP BY MONTH(create_time)) a`
+	MonthAverageSql := `SELECT IFNULL(ROUND(AVG(a.count)), 0) AS average FROM (SELECT COUNT(id) AS count FROM t_post GROUP BY YEAR(create_time), MONTH(create_time)) a`
 
 	err = db.Get(&postAnalysis.Average, MonthAverageSql)
 	if err != nil {
 		return
 	}
 
-	err = db.Get(&postAnalysis.MonthIncrease, `SELECT COUNT(id) FROM t_post WHERE YEAR(create_time) = YEAR(create_time) AND MONTH(create_time) = MONTH(NOW())`)
+	err = db.Get(&postAnalysis.MonthIncrease, `SELECT COUNT(id) FROM t_post WHERE YEAR(create_time) = YEAR(NOW()) AND MONTH(create_time) = MONTH(NOW())`)
 	return
 }
 
 func GetPostViewsRank(limit uint8) (postViewsRank models.PostViewsRank, err error) {
 
-	sql := `SELECT p.pid, p.title, pv.views FROM t_post p LEFT JOIN t_post_views pv on p.pid = pv.pid ORDER BY pv.views LIMIT ?`
+	sql := `SELECT p.pid, p.title, pv.views FROM t_post p LEFT JOIN t_post_views pv on p.pid = pv.pid ORDER BY pv.views DESC LIMIT ?`
 
 	err = db.Select(&postViewsRank, sql, limit)
 	return
