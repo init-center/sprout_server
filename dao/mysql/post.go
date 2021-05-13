@@ -177,7 +177,7 @@ func UpdatePost(p *models.ParamsUpdatePost, u *models.UriUpdatePost) (err error)
 					SET pc.top_time = NOW()
 					WHERE p.delete_time IS NULL
 					AND pc.display = 1
-					AND p.id = (SELECT MIN(id) FROM t_post)`)
+					AND p.id = (SELECT MAX(id) FROM t_post)`)
 
 				if err != nil {
 					return
